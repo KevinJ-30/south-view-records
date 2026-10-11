@@ -1,0 +1,5 @@
+node_modules
+dist
+ocr4all
+.git
+.env

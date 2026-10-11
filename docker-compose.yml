@@ -1,0 +1,22 @@
+services:
+  kraken:
+    build: ./kraken
+    ports:
+      - "5001:5000"
+
+  ocr4all:
+    image: uniwuezpd/ocr4all
+    platform: linux/amd64
+    ports:
+      - "1476:8080"
+    volumes:
+      - ./ocr4all/data:/var/ocr4all/data
+
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      KRAKEN_URL: http://kraken:5000
+    depends_on:
+      - kraken
