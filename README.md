@@ -1,32 +1,40 @@
-# React + TypeScript + Vite
+# South-View frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Search site for the South-View Cemetery burial records index (React, Vite, Tailwind).
 
-Currently, two official plugins are available:
+## Run it
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Start [pitch-backend](https://github.com/lmc-3403-ocr/pitch-backend) first (port 8080), then:
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```sh
+pnpm install
+pnpm dev        # http://localhost:5173
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+In development, Vite forwards `/api` to `http://localhost:8080`. For a deployed build,
+set `VITE_API_BASE_URL` to the backend's address.
+
+```sh
+pnpm build      # type-check and build to dist/
+pnpm lint
+```
+
+## Pages
+
+| Path | Page |
+| --- | --- |
+| `/` | Home: name search and what's transcribed so far |
+| `/search?q=…&from=…&to=…&plat=…&section=…&block=…&lot=…&infant=yes|no&page=…` | Results with filters and paging. The URL is the state, so results can be bookmarked and shared |
+| `/records/:id` | Every field of one record, uncertain readings, transcriber note, and ledger citation |
+| `/ocr` | Ledger page OCR demo (not linked from the site) |
+
+The API types live in `src/lib/api.ts` and must match `pitch-backend/src/data/types.ts`.
+
+## Display rules
+
+- Names and values are shown exactly as transcribed, never corrected.
+- Fields listed in a record's `uncertainFields` get a dotted gold underline (`.uncertain`).
+  On record pages it is a button that explains "Uncertain reading" on hover, focus, or tap.
+- Plat codes are shown as written; their meaning is not yet known.
+- Brand colors come from the logo: green `#1F3A2E`, gold `#B08A3E` (decorative only;
+  use `gold-ink` `#7A5C22` for text), cream `#F4EFE4`.
