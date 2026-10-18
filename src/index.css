@@ -2,11 +2,14 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/source-serif-4";
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-heading: var(--font-sans);
+    --font-heading: 'Source Serif 4 Variable', Georgia, serif;
+    --color-gold: var(--gold);
+    --color-gold-ink: var(--gold-ink);
     --font-sans: 'Inter Variable', sans-serif;
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
@@ -49,38 +52,47 @@
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
+    /* South-View brand, sampled from handoff/south-view-logo.png */
+    --brand-green: #1F3A2E;
+    --brand-gold: #B08A3E;
+    --brand-cream: #F4EFE4;
+
+    --background: var(--brand-cream);
+    --foreground: #1A2620;
+    --card: #FBF8F1;
+    --card-foreground: #1A2620;
+    --popover: #FBF8F1;
+    --popover-foreground: #1A2620;
+    --primary: var(--brand-green);
+    --primary-foreground: var(--brand-cream);
+    --secondary: #EAE3D3;
+    --secondary-foreground: var(--brand-green);
+    --muted: #EAE3D3;
+    --muted-foreground: #545B50;
+    --accent: #EAE3D3;
+    --accent-foreground: var(--brand-green);
+    --destructive: #9B2C2C;
+    --border: #D6CCB6;
+    /* form control outlines need 3:1 against the cream background */
+    --input: #8C8270;
+    --ring: var(--brand-green);
+    /* logo gold is decorative only (2.8:1); gold-ink is the text-safe shade */
+    --gold: var(--brand-gold);
+    --gold-ink: #7A5C22;
+    --chart-1: var(--brand-green);
+    --chart-2: var(--brand-gold);
+    --chart-3: #54675C;
+    --chart-4: #8A9589;
+    --chart-5: #BFC2B7;
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --sidebar: #FBF8F1;
+    --sidebar-foreground: #1A2620;
+    --sidebar-primary: var(--brand-green);
+    --sidebar-primary-foreground: var(--brand-cream);
+    --sidebar-accent: #EAE3D3;
+    --sidebar-accent-foreground: var(--brand-green);
+    --sidebar-border: #D6CCB6;
+    --sidebar-ring: var(--brand-green);
 }
 
 .dark {
@@ -127,4 +139,15 @@
   html {
     @apply font-sans;
     }
+}
+
+@layer components {
+  /* Marks a value the transcriber could not read clearly. */
+  .uncertain {
+    text-decoration-line: underline;
+    text-decoration-style: dotted;
+    text-decoration-color: var(--gold-ink);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.2em;
+  }
 }
