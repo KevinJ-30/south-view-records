@@ -29,3 +29,6 @@ ocr4all/data/
 
 # misc
 .DS_Store
+
+# build output
+dist/
