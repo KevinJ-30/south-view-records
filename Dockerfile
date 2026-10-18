@@ -9,6 +9,7 @@ RUN pnpm install --frozen-lockfile
 
 COPY tsconfig.json ./
 COPY src ./src
+COPY data ./data
 RUN pnpm build
 
 ENV KRAKEN_URL=http://kraken:5000

@@ -1,6 +1,8 @@
 import { existsSync } from "node:fs";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
+import { loadBurials } from "./data/burials.js";
+import { burialRoutes } from "./routes/burials.js";
 import { KrakenError, KrakenService } from "./services/kraken.js";
 
 if (existsSync(".env")) {
@@ -18,6 +20,8 @@ const app = new Hono();
 app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
+
+app.route("/api", burialRoutes(await loadBurials()));
 
 app.post("/api/image", async (c) => {
   const body = await c.req.parseBody();
