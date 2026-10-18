@@ -1,8 +1,83 @@
-```
-npm install
-npm run dev
+# South-View backend
+
+API for the South-View burial records index, plus the ledger OCR endpoint.
+Works with [pitch-frontend](https://github.com/lmc-3403-ocr/pitch-frontend).
+
+## Run it
+
+Needs [Node.js](https://nodejs.org) 22+ and pnpm (`corepack enable` sets it up).
+
+```sh
+pnpm install
+pnpm dev        # http://localhost:8080
+pnpm test
 ```
 
+Records load from every `*.csv` in `data/` when the server starts. There is no database yet.
+
+## Adding ledger pages
+
+Drop more CSV files with the same columns into `data/` and restart. Files load in
+filename order and rows are keyed by `id`, so loading a file twice never duplicates
+records, and a later file with the same `id` replaces the earlier row (for
+corrections). A file with wrong columns or a bad value stops startup with the file
+name and line number.
+
+Columns: `id, source_page, line_on_page, entry_no, name_as_written, is_infant_of,
+burial_date, age_years, age_months_or_days, plat, section, block, lot, range, grave,
+uncertain_fields, transcriber_note`. Values are never corrected. Set
+`BURIALS_DATA_DIR` to load from a different folder.
+
+## API
+
+All responses are JSON. Errors are `{ "error": "message" }` with status 400 or 404.
+
+### `GET /api/burials`
+
+| Param | Meaning |
+| --- | --- |
+| `q` | Name search: case-insensitive, partial, ledger abbreviations (`Jno.` ↔ John), and close spellings |
+| `from`, `to` | Burial date range, `YYYY-MM-DD`, inclusive. Undated records are left out when either is set |
+| `plat`, `section`, `block`, `lot` | Exact match on the text as written, case-insensitive (`lot=Hunter`) |
+| `infant` | `yes` or `no` |
+| `page`, `pageSize` | Default 1 and 20; `pageSize` max 100 |
+
+```json
+{ "items": [Burial & { "matchType": "exact" | "abbreviation" | "fuzzy" | null }],
+  "total": 83, "page": 1, "pageSize": 20, "totalPages": 5 }
 ```
-open http://localhost:3000
+
+With `q`, results are ranked exact, then abbreviation, then fuzzy matches.
+Otherwise, and for ties, results are in date order (undated last), then by ledger page and line.
+
+### `GET /api/burials/:id`
+
+One `Burial`:
+
+```json
+{ "id": 6, "sourcePage": 6, "lineOnPage": 6, "entryNo": "868",
+  "nameAsWritten": "Jno. Harris", "isInfantOf": false, "burialDate": "1905-10-11",
+  "ageYears": "93", "ageMonthsOrDays": null, "plat": "VR", "section": "1",
+  "block": "3", "lot": "23", "range": "B", "grave": "1",
+  "uncertainFields": ["nameAsWritten", "lot"], "transcriberNote": "Plat code struck through" }
 ```
+
+Blank values are `null`. Location and age values are always strings. `uncertainFields`
+uses the API field names above.
+
+### `GET /api/stats`
+
+`{ total, infants, undated, earliestDate, latestDate, byMonth: [{ month, total, infants }], byPlat: [{ plat, total }], sourcePages }`
+
+### `POST /api/image`
+
+Ledger page OCR. Send a multipart form with an `image` field. Needs the Kraken service:
+`docker compose up kraken`.
+
+## Code layout
+
+- `src/data/types.ts`: `Burial` and the `BurialRepository` interface (`search`, `getById`, `stats`).
+- `src/data/burials.ts`: the in-memory repository. A database version only needs to implement the same interface.
+- `src/data/load.ts`: CSV parsing and validation.
+- `src/data/match.ts`, `src/data/abbreviations.ts`: name matching. Add abbreviations to the list as they turn up.
+- `src/routes/burials.ts`: HTTP routes and parameter validation.
