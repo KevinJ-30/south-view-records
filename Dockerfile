@@ -12,8 +12,6 @@ COPY src ./src
 COPY data ./data
 RUN pnpm build
 
-ENV KRAKEN_URL=http://kraken:5000
-
 EXPOSE 8080
 
 CMD ["node", "dist/index.js"]
