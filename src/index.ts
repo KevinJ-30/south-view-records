@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { loadBurials } from "./data/burials.js";
+import { loadBurialsFromSupabase } from "./data/supabase.js";
 import { burialRoutes } from "./routes/burials.js";
 
 if (existsSync(".env")) {
@@ -14,7 +15,12 @@ app.get("/", (c) => {
   return c.text("Hello Hono!");
 });
 
-app.route("/api", burialRoutes(await loadBurials()));
+const { SUPABASE_URL, SUPABASE_KEY } = process.env;
+const repository =
+  SUPABASE_URL && SUPABASE_KEY ? await loadBurialsFromSupabase(SUPABASE_URL, SUPABASE_KEY) : await loadBurials();
+console.log(`Burial data source: ${SUPABASE_URL && SUPABASE_KEY ? "Supabase" : "CSV files"}`);
+
+app.route("/api", burialRoutes(repository));
 
 serve(
   {

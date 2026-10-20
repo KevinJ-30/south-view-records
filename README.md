@@ -13,7 +13,8 @@ pnpm dev        # http://localhost:8080
 pnpm test
 ```
 
-Records load from every `*.csv` in `data/` when the server starts. There is no database yet.
+Records load from every `*.csv` in `data/` when the server starts. With `SUPABASE_URL` and `SUPABASE_KEY` set (see `.env.example`), records load from the
+Supabase `burial_records` table instead, once at startup (restart to pick up new rows).
 
 ## Adding ledger pages
 
@@ -78,6 +79,7 @@ Ledger page OCR. Send a multipart form with an `image` field. Needs the Kraken s
 
 - `src/data/types.ts`: `Burial` and the `BurialRepository` interface (`search`, `getById`, `stats`).
 - `src/data/burials.ts`: the in-memory repository. A database version only needs to implement the same interface.
+- `src/data/supabase.ts`: reads `burial_records` from Supabase and maps rows to `Burial` (`index_record` is the record id).
 - `src/data/load.ts`: CSV parsing and validation.
 - `src/data/match.ts`, `src/data/abbreviations.ts`: name matching. Add abbreviations to the list as they turn up.
 - `src/routes/burials.ts`: HTTP routes and parameter validation.

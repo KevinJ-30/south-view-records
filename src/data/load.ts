@@ -26,7 +26,7 @@ export const CSV_COLUMNS = [
 type Column = (typeof CSV_COLUMNS)[number];
 
 /** Ledger field names used in uncertain_fields, mapped to API field names. */
-const UNCERTAIN_FIELD_NAMES: Record<string, keyof Burial> = {
+export const UNCERTAIN_FIELD_NAMES: Record<string, keyof Burial> = {
   name: "nameAsWritten",
   name_as_written: "nameAsWritten",
   entry_no: "entryNo",
