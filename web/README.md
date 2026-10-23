@@ -26,7 +26,6 @@ pnpm lint
 | `/` | Home: name search and what's transcribed so far |
 | `/search?q=…&from=…&to=…&plat=…&section=…&block=…&lot=…&infant=yes|no&page=…` | Results with filters and paging. The URL is the state, so results can be bookmarked and shared |
 | `/records/:id` | Every field of one record, uncertain readings, transcriber note, and ledger citation |
-| `/ocr` | Ledger page OCR demo (not linked from the site) |
 
 The API types live in `src/lib/api.ts` and must match `pitch-backend/src/data/types.ts`.
 

@@ -1,6 +1,6 @@
 # South-View backend
 
-API for the South-View burial records index, plus the ledger OCR endpoint.
+API for the South-View burial records index.
 On this branch the frontend ([pitch-frontend](https://github.com/lmc-3403-ocr/pitch-frontend))
 lives in `web/`, so both deploy together as one Vercel project.
 
@@ -80,11 +80,6 @@ uses the API field names above.
 ### `GET /api/stats`
 
 `{ total, infants, undated, earliestDate, latestDate, byMonth: [{ month, total, infants }], byPlat: [{ plat, total }], sourcePages }`
-
-### `POST /api/image`
-
-Ledger page OCR. Send a multipart form with an `image` field. Needs the Kraken service:
-`docker compose up kraken`.
 
 ## Code layout
 

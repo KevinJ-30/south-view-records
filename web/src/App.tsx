@@ -2,8 +2,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, Link, RouterProvider } from "react-router";
 import { Layout } from "@/components/layout";
 import { usePageTitle } from "@/hooks/use-page-title";
-import { Toaster } from "@/components/ui/toast";
-import { LandingPage } from "@/routes";
 import { HomePage } from "@/routes/home";
 import { RecordPage } from "@/routes/record";
 import { SearchPage } from "@/routes/search";
@@ -19,8 +17,6 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "search", element: <SearchPage /> },
       { path: "records/:id", element: <RecordPage /> },
-      // Ledger page OCR demo; not linked from the records index.
-      { path: "ocr", element: <LandingPage /> },
       { path: "*", element: <NotFound /> },
     ],
   },
@@ -45,7 +41,6 @@ function NotFound() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Toaster />
       <RouterProvider router={router} />
     </QueryClientProvider>
   );
