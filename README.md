@@ -1,7 +1,18 @@
 # South-View backend
 
 API for the South-View burial records index, plus the ledger OCR endpoint.
-Works with [pitch-frontend](https://github.com/lmc-3403-ocr/pitch-frontend).
+On this branch the frontend ([pitch-frontend](https://github.com/lmc-3403-ocr/pitch-frontend))
+lives in `web/`, so both deploy together as one Vercel project.
+
+## Deploy on Vercel
+
+`vercel.json` does the setup: pnpm installs both packages, `web/` is built as the
+static site, and `api/index.ts` serves every `/api/*` request with the same Hono app as
+`pnpm dev`. In the Vercel project, leave the root directory as the repo root and add
+`SUPABASE_URL` and `SUPABASE_KEY` under Environment Variables. Without them the API
+serves the CSVs in `data/`.
+
+Run the frontend locally with `pnpm --filter ./web dev` (it proxies `/api` to `pnpm dev`).
 
 ## Run it
 
@@ -77,6 +88,7 @@ Ledger page OCR. Send a multipart form with an `image` field. Needs the Kraken s
 
 ## Code layout
 
+- `src/app.ts`: builds the Hono app. `src/index.ts` serves it on port 8080; `api/index.ts` is the Vercel function.
 - `src/data/types.ts`: `Burial` and the `BurialRepository` interface (`search`, `getById`, `stats`).
 - `src/data/burials.ts`: the in-memory repository. A database version only needs to implement the same interface.
 - `src/data/supabase.ts`: reads `burial_records` from Supabase and maps rows to `Burial` (`index_record` is the record id).

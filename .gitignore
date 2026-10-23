@@ -32,3 +32,6 @@ ocr4all/data/
 
 # build output
 dist/
+
+# vercel
+.vercel
