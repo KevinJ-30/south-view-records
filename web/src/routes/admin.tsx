@@ -389,19 +389,19 @@ const FIELD_GROUPS: { title: string; fields: FieldSpec[] }[] = [
     fields: [
       { name: "nameAsWritten", label: "Name as written", required: true, uncertain: true },
       { name: "burialDate", label: "Burial date", type: "date", uncertain: true },
-      { name: "ageYears", label: "Age in years", uncertain: true },
+      { name: "ageYears", label: "Age in years", hint: "A whole number from 0 to 130", uncertain: true },
       { name: "ageMonthsOrDays", label: "Age in months or days", hint: "e.g. “3 months”, “7 days”", uncertain: true },
     ],
   },
   {
     title: "Plot location",
     fields: [
-      { name: "plat", label: "Plat", uncertain: true },
-      { name: "section", label: "Section", uncertain: true },
-      { name: "block", label: "Block", uncertain: true },
-      { name: "lot", label: "Lot", uncertain: true },
-      { name: "range", label: "Range", uncertain: true },
-      { name: "grave", label: "Grave", uncertain: true },
+      { name: "plat", label: "Plat", hint: "Capital letters and digits, e.g. VR", uncertain: true },
+      { name: "section", label: "Section", hint: "A whole number, 1 or more", uncertain: true },
+      { name: "block", label: "Block", hint: "A whole number, 1 or more", uncertain: true },
+      { name: "lot", label: "Lot", hint: "As written; can be a word, e.g. Hunter", uncertain: true },
+      { name: "range", label: "Range", hint: "Capital letters only, e.g. B", uncertain: true },
+      { name: "grave", label: "Grave", hint: "A whole number, 1 or more", uncertain: true },
     ],
   },
   {
@@ -409,7 +409,7 @@ const FIELD_GROUPS: { title: string; fields: FieldSpec[] }[] = [
     fields: [
       { name: "sourcePage", label: "Ledger page", type: "number", required: true },
       { name: "lineOnPage", label: "Line on page", type: "number", required: true },
-      { name: "entryNo", label: "Entry number", uncertain: true },
+      { name: "entryNo", label: "Entry number", hint: "A whole number, 1 or more", uncertain: true },
     ],
   },
 ];
@@ -447,11 +447,12 @@ function RecordEditor({
       burialDate: text("burialDate"),
       ageYears: text("ageYears"),
       ageMonthsOrDays: text("ageMonthsOrDays"),
-      plat: text("plat"),
+      // The table only takes capitals here, so "b" is saved as "B".
+      plat: text("plat")?.toUpperCase() ?? null,
       section: text("section"),
       block: text("block"),
       lot: text("lot"),
-      range: text("range"),
+      range: text("range")?.toUpperCase() ?? null,
       grave: text("grave"),
       uncertainFields: form.getAll("uncertain").map(String),
       transcriberNote: text("transcriberNote"),

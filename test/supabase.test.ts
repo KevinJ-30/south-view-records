@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { burialToRow, rowToBurial, splitAgeUnderOneYear, type BurialRow } from "../src/data/supabase.js";
+import { burialToRow, rowToBurial, splitAgeUnderOneYear, writeError, type BurialRow } from "../src/data/supabase.js";
 import { InvalidRecord } from "../src/data/types.js";
 
 const row: BurialRow = {
@@ -83,5 +83,21 @@ describe("burialToRow", () => {
   it("rejects numbers the table can't store", () => {
     const { id: _, ...input } = rowToBurial(row);
     expect(() => burialToRow({ ...input, ageYears: "abt. 40" })).toThrow(InvalidRecord);
+    expect(() => burialToRow({ ...input, section: "two" })).toThrow(InvalidRecord);
+  });
+});
+
+describe("writeError", () => {
+  const checkViolation = (constraint: string) =>
+    writeError("save the record", {
+      code: "23514",
+      message: `new row for relation "burial_records" violates check constraint "${constraint}"`,
+    } as Parameters<typeof writeError>[1]);
+
+  it("explains check constraints in plain language", () => {
+    const error = checkViolation("burial_records_range_format");
+    expect(error).toBeInstanceOf(InvalidRecord);
+    expect(error.message).toBe("Range may only use capital letters, e.g. B.");
+    expect(checkViolation("burial_records_new_rule").message).toContain("burial_records_new_rule");
   });
 });

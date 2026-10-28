@@ -106,19 +106,37 @@ export function burialToRow(input: BurialInput): Omit<BurialRow, "index_record">
     age_years: wholeNumber("Age in years", input.ageYears),
     ...splitAgeUnderOneYear(input.ageMonthsOrDays),
     plat: input.plat,
-    section: input.section,
-    block: input.block,
+    section: wholeNumber("Section", input.section),
+    block: wholeNumber("Block", input.block),
     lot: input.lot,
     range: input.range,
-    grave: input.grave,
+    grave: wholeNumber("Grave", input.grave),
     uncertain_fields: input.uncertainFields.map((name) => LEDGER_FIELD_NAMES[name] ?? name),
     transcriber_note: input.transcriberNote,
   };
 }
 
+/** Plain-language versions of the check constraints on burial_records. */
+const CHECK_MESSAGES: Record<string, string> = {
+  burial_records_age_years_range: "Age in years must be between 0 and 130.",
+  burial_records_block_positive: "Block must be a whole number of 1 or more.",
+  burial_records_entry_number_positive: "Entry number must be a whole number of 1 or more.",
+  burial_records_grave_positive: "Grave must be a whole number of 1 or more.",
+  burial_records_ledger_page_positive: "Ledger page must be a whole number of 1 or more.",
+  burial_records_line_on_page_positive: "Line on page must be a whole number of 1 or more.",
+  burial_records_name_as_written_nonempty: "Name as written can't be blank.",
+  burial_records_plat_format: "Plat may only use capital letters and digits, e.g. VR.",
+  burial_records_range_format: "Range may only use capital letters, e.g. B.",
+  burial_records_section_positive: "Section must be a whole number of 1 or more.",
+};
+
 /** Bad values and broken constraints are the editor's to fix (400); anything else is a server problem. */
-function writeError(action: string, error: PostgrestError): Error {
+export function writeError(action: string, error: PostgrestError): Error {
   if (error.code === "23505") return new InvalidRecord("Another record already uses that ledger page and line.");
+  if (error.code === "23514") {
+    const constraint = /check constraint "([^"]+)"/.exec(error.message)?.[1] ?? "";
+    return new InvalidRecord(CHECK_MESSAGES[constraint] ?? `A value breaks the table's rule "${constraint}".`);
+  }
   if (/^2[23]/.test(error.code)) return new InvalidRecord(error.message);
   return new Error(`Supabase: could not ${action}: ${error.message}`);
 }
