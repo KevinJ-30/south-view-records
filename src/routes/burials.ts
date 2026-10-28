@@ -1,9 +1,10 @@
 import { Hono } from "hono";
+import { isIsoDate } from "../data/load.js";
 import type { BurialRepository, SearchParams } from "../data/types.js";
+import { UNCERTAINTY_FILTERS, type UncertaintyFilter } from "../data/uncertainty.js";
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 class BadRequest extends Error {}
 
@@ -40,7 +41,7 @@ function parseSearch(query: URLSearchParams): SearchParams {
 
   const date = (name: string) => {
     const value = text(name);
-    if (value !== undefined && !ISO_DATE.test(value)) throw new BadRequest(`${name} must be a date like 1905-10-01.`);
+    if (value !== undefined && !isIsoDate(value)) throw new BadRequest(`${name} must be a real date like 1905-10-01.`);
     return value;
   };
 
@@ -57,15 +58,25 @@ function parseSearch(query: URLSearchParams): SearchParams {
   else if (infantValue === "no" || infantValue === "false") infant = false;
   else if (infantValue !== undefined) throw new BadRequest("infant must be yes or no.");
 
+  const uncertain = text("uncertain")?.toLowerCase();
+  if (uncertain !== undefined && !UNCERTAINTY_FILTERS.includes(uncertain as UncertaintyFilter)) {
+    throw new BadRequest(`uncertain must be one of ${UNCERTAINTY_FILTERS.join(", ")}.`);
+  }
+
+  const from = date("from");
+  const to = date("to");
+  if (from && to && from > to) throw new BadRequest("from must be on or before to.");
+
   return {
     q: text("q"),
-    from: date("from"),
-    to: date("to"),
+    from,
+    to,
     plat: text("plat"),
     section: text("section"),
     block: text("block"),
     lot: text("lot"),
     infant,
+    uncertain: uncertain as UncertaintyFilter | undefined,
     page: positive("page", 1),
     pageSize: positive("pageSize", DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE),
   };

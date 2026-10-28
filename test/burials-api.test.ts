@@ -81,6 +81,20 @@ describe("GET /burials search", () => {
     expect(lot.items.every((item) => item.section === "1" && item.block === "1" && item.lot === "5")).toBe(true);
   });
 
+  it("filters by uncertain readings", async () => {
+    const any = await search("uncertain=any&pageSize=100");
+    const none = await search("uncertain=none&pageSize=100");
+    expect(any.total + none.total).toBe(83);
+    expect(any.items.every((item) => item.uncertainFields.length > 0)).toBe(true);
+    expect(none.items.every((item) => item.uncertainFields.length === 0)).toBe(true);
+
+    const names = await search("uncertain=name&pageSize=100");
+    expect(names.total).toBeGreaterThan(0);
+    expect(names.items.every((item) => item.uncertainFields.includes("nameAsWritten"))).toBe(true);
+    const locations = await search("uncertain=location&pageSize=100");
+    expect(locations.items.map((item) => item.nameAsWritten)).toContain("Wm. Leland");
+  });
+
   it("combines a name search with filters", async () => {
     expect(names(await search("q=wilson&infant=yes"))).toEqual(["Inf. of William Wilson", "Inf. of H. Wilson"]);
   });
@@ -99,7 +113,16 @@ describe("GET /burials search", () => {
   });
 
   it("rejects malformed parameters", async () => {
-    for (const query of ["from=Oct%201905", "to=1905-1-5", "page=0", "pageSize=abc", "infant=maybe"]) {
+    for (const query of [
+      "from=Oct%201905",
+      "to=1905-1-5",
+      "from=1905-02-30",
+      "from=1905-11-01&to=1905-10-01",
+      "page=0",
+      "pageSize=abc",
+      "infant=maybe",
+      "uncertain=sometimes",
+    ]) {
       const response = await api.request(`/burials?${query}`);
       expect(response.status, query).toBe(400);
       expect(await response.json()).toHaveProperty("error");

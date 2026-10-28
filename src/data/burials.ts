@@ -1,6 +1,7 @@
 import path from "node:path";
 import { loadBurialDirectory } from "./load.js";
 import { matchName, type NameMatch } from "./match.js";
+import { matchesUncertainty } from "./uncertainty.js";
 import type { Burial, BurialHit, BurialInput, BurialRepository, SearchParams, SearchResult, Stats } from "./types.js";
 
 export const DEFAULT_DATA_DIR = path.resolve(import.meta.dirname, "../../data");
@@ -45,6 +46,7 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
         if (params.from && (!burial.burialDate || burial.burialDate < params.from)) continue;
         if (params.to && (!burial.burialDate || burial.burialDate > params.to)) continue;
         if (params.infant !== undefined && burial.isInfantOf !== params.infant) continue;
+        if (params.uncertain && !matchesUncertainty(burial, params.uncertain)) continue;
         if (!sameValue(burial.plat, params.plat)) continue;
         if (!sameValue(burial.section, params.section)) continue;
         if (!sameValue(burial.block, params.block)) continue;

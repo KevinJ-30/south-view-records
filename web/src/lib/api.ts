@@ -48,7 +48,7 @@ export type Stats = {
 };
 
 /** Query parameters accepted by GET /api/burials; all optional strings, as in the URL. */
-export const SEARCH_PARAMS = ["q", "from", "to", "plat", "section", "block", "lot", "infant", "page", "pageSize"] as const;
+export const SEARCH_PARAMS = ["q", "from", "to", "plat", "section", "block", "lot", "infant", "uncertain", "page", "pageSize"] as const;
 
 /** Empty in development: Vite proxies /api to the backend. */
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";

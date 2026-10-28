@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router";
 import logo from "@/assets/south-view-logo.png";
 import { SearchForm } from "@/components/search-form";
 import { usePageTitle } from "@/hooks/use-page-title";
@@ -26,15 +25,6 @@ export function HomePage() {
       </div>
 
       <SearchForm size="large" />
-
-      <p className="text-center">
-        <Link
-          to="/search"
-          className="font-medium text-primary underline underline-offset-4 hover:no-underline focus-visible:rounded-sm focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-none"
-        >
-          Browse all records, or search by date and plot
-        </Link>
-      </p>
 
       {stats.data ? (
         <section aria-labelledby="coverage" className="rounded-2xl border border-border bg-card p-5">

@@ -1,3 +1,5 @@
+import type { UncertaintyFilter } from "./uncertainty.js";
+
 /**
  * One burial from the grave record ledgers. Every value is kept exactly as
  * transcribed: location and age fields stay strings, blanks become null.
@@ -42,6 +44,7 @@ export type SearchParams = {
   block?: string;
   lot?: string;
   infant?: boolean;
+  uncertain?: UncertaintyFilter;
   page: number;
   pageSize: number;
 };

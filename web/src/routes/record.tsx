@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeftIcon, Loader2Icon } from "lucide-react";
 import { Link, useLocation, useParams } from "react-router";
 import { usePageTitle } from "@/hooks/use-page-title";
-import { Uncertain, UncertainLegend } from "@/components/uncertain";
+import { RecordUncertainty, Uncertain } from "@/components/uncertain";
 import { ApiError, getBurial, type Burial } from "@/lib/api";
 import { formatCitation, formatDate, LOCATION_FIELDS } from "@/lib/format";
 
@@ -32,7 +32,9 @@ export function RecordPage() {
         ) : record.isError ? (
           notFound ? "Record not found" : "Something went wrong"
         ) : (
-          <Uncertain uncertain={record.data.uncertainFields.includes("nameAsWritten")}>{record.data.nameAsWritten}</Uncertain>
+          <Uncertain uncertain={record.data.uncertainFields.includes("nameAsWritten")} field="nameAsWritten">
+            {record.data.nameAsWritten}
+          </Uncertain>
         )}
       </h1>
 
@@ -57,7 +59,11 @@ function RecordDetail({ burial }: { burial: Burial }) {
     const raw = burial[field];
     if (raw === null || raw === "") return <NotRecorded uncertain={uncertain(field)} />;
     const shown = field === "burialDate" ? formatDate(String(raw)) : String(raw);
-    return <Uncertain uncertain={uncertain(field)}>{shown}</Uncertain>;
+    return (
+      <Uncertain uncertain={uncertain(field)} field={field}>
+        {shown}
+      </Uncertain>
+    );
   };
 
   return (
@@ -70,8 +76,9 @@ function RecordDetail({ burial }: { burial: Burial }) {
         <p className="text-muted-foreground">
           Source: <cite className="not-italic">{formatCitation(burial)}</cite>
         </p>
-        {burial.uncertainFields.length > 0 ? <UncertainLegend className="text-sm text-muted-foreground" /> : null}
       </header>
+
+      <RecordUncertainty burial={burial} />
 
       {burial.transcriberNote ? (
         <section aria-labelledby="note" className="rounded-2xl border border-border bg-card px-5 py-4">

@@ -79,6 +79,12 @@
     /* logo gold is decorative only (2.8:1); gold-ink is the text-safe shade */
     --gold: var(--brand-gold);
     --gold-ink: #7A5C22;
+    /* One color per kind of uncertain reading (see src/lib/uncertainty.ts); all are 4.5:1 or more on the cream background */
+    --uncertain-name: #6B3FA0;
+    --uncertain-date: #1D5C8F;
+    --uncertain-age: #8F4A0E;
+    --uncertain-location: #A0305A;
+    --uncertain-entry: #4B5563;
     --chart-1: var(--brand-green);
     --chart-2: var(--brand-gold);
     --chart-3: #54675C;
@@ -142,12 +148,34 @@
 }
 
 @layer components {
-  /* Marks a value the transcriber could not read clearly. */
+  [data-uncertainty="name"] { --uncertainty: var(--uncertain-name); }
+  [data-uncertainty="date"] { --uncertainty: var(--uncertain-date); }
+  [data-uncertainty="age"] { --uncertainty: var(--uncertain-age); }
+  [data-uncertainty="location"] { --uncertainty: var(--uncertain-location); }
+  [data-uncertainty="entry"] { --uncertainty: var(--uncertain-entry); }
+
+  /* Marks a value the transcriber could not read clearly: a tint and underline in its kind's color. */
   .uncertain {
+    background-color: color-mix(in srgb, var(--uncertainty, var(--gold-ink)) 12%, transparent);
+    border-radius: 0.25em;
+    padding-inline: 0.15em;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
     text-decoration-line: underline;
     text-decoration-style: dotted;
-    text-decoration-color: var(--gold-ink);
+    text-decoration-color: var(--uncertainty, var(--gold-ink));
     text-decoration-thickness: 2px;
     text-underline-offset: 0.2em;
+  }
+
+  .uncertainty-ink {
+    color: var(--uncertainty, var(--gold-ink));
+  }
+
+  /* A tag naming one kind of uncertain reading. */
+  .uncertainty-tag {
+    color: var(--uncertainty, var(--gold-ink));
+    border-color: color-mix(in srgb, var(--uncertainty, var(--gold-ink)) 50%, transparent);
+    background-color: color-mix(in srgb, var(--uncertainty, var(--gold-ink)) 8%, transparent);
   }
 }

@@ -57,9 +57,10 @@ All responses are JSON. Errors are `{ "error": "message" }` with status 400 or 4
 | Param | Meaning |
 | --- | --- |
 | `q` | Name search: case-insensitive, partial, ledger abbreviations (`Jno.` ↔ John), and close spellings |
-| `from`, `to` | Burial date range, `YYYY-MM-DD`, inclusive. Undated records are left out when either is set |
+| `from`, `to` | Burial date range, `YYYY-MM-DD`, inclusive. Must be real dates, with `from` on or before `to`. Undated records are left out when either is set |
 | `plat`, `section`, `block`, `lot` | Exact match on the text as written, case-insensitive (`lot=Hunter`) |
 | `infant` | `yes` or `no` |
+| `uncertain` | `any` or `none` uncertain readings, or one kind: `name`, `date`, `age`, `location` (plat through grave), `entry` |
 | `page`, `pageSize` | Default 1 and 20; `pageSize` max 100 |
 
 ```json
