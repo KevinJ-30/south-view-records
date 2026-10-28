@@ -85,7 +85,7 @@ export function SearchForm({ size = "default", autoFocus = false }: { size?: "de
               large ? "h-14 text-lg" : "h-12 text-base",
             )}
           />
-          <Button type="submit" className={cn("rounded-xl px-5", large ? "h-14 text-base" : "h-12")}>
+          <Button type="submit" variant="dark" className={cn("rounded-xl px-5", large ? "h-14 text-base" : "h-12")}>
             <SearchIcon aria-hidden="true" />
             Search
           </Button>
@@ -112,7 +112,7 @@ export function SearchForm({ size = "default", autoFocus = false }: { size?: "de
           <span>
             Filter by date, plot, or uncertain readings
             {activeCount > 0 ? (
-              <span className="ml-2 inline-block rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">
+              <span className="ml-2 inline-block rounded-full bg-foreground px-2 py-0.5 text-xs text-background">
                 {activeCount} on
               </span>
             ) : null}
@@ -197,7 +197,7 @@ export function SearchForm({ size = "default", autoFocus = false }: { size?: "de
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button type="submit" className="h-11 px-5">
+          <Button type="submit" variant="dark" className="h-11 px-5">
             Search with these filters
           </Button>
           <Button type="button" variant="ghost" className="h-11 px-4" onClick={clearFilters}>

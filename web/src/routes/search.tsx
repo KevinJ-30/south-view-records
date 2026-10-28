@@ -31,7 +31,7 @@ export function SearchPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 tabIndex={-1} className="font-heading text-3xl font-semibold text-primary outline-none">
+      <h1 tabIndex={-1} className="font-heading text-3xl font-semibold text-foreground outline-none">
         {q ? "Search results" : "Browse records"}
       </h1>
       <SearchForm key={formKey} />
@@ -109,7 +109,7 @@ function ResultCard({ burial }: { burial: BurialHit }) {
   return (
     <article className="relative flex flex-col gap-3 rounded-2xl border border-border bg-card p-4 transition-colors focus-within:ring-[3px] focus-within:ring-ring/50 hover:border-primary sm:p-5">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h3 className="font-heading text-xl font-semibold text-primary">
+        <h3 className="font-heading text-xl font-semibold text-foreground">
           <Link
             to={`/records/${burial.id}`}
             state={{ fromSearch: location.search }}
@@ -177,7 +177,7 @@ function Tag({ children, tone = "green" }: { children: ReactNode; tone?: "green"
     <span
       className={cn(
         "rounded-full border px-2.5 py-0.5 text-xs font-medium",
-        tone === "gold" ? "border-gold text-gold-ink" : "border-primary/40 text-primary",
+        tone === "gold" ? "border-gold text-gold-ink" : "border-foreground/30 text-foreground",
       )}
     >
       {children}
@@ -198,7 +198,7 @@ function EmptyState({ q, hasFilters }: { q: string; hasFilters: boolean }) {
 
   return (
     <div role="status" className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-5">
-      <p className="font-heading text-xl font-semibold text-primary">
+      <p className="font-heading text-xl font-semibold text-foreground">
         {q ? `No exact match for “${q}”` : "No records match these filters"}
       </p>
       {q ? (
@@ -208,7 +208,7 @@ function EmptyState({ q, hasFilters }: { q: string; hasFilters: boolean }) {
             {shorter ? (
               <>
                 , like{" "}
-                <Link className="text-primary underline underline-offset-4" to={`/search?${new URLSearchParams({ ...Object.fromEntries(params), q: shorter, page: "1" })}`}>
+                <Link className="text-foreground underline underline-offset-4" to={`/search?${new URLSearchParams({ ...Object.fromEntries(params), q: shorter, page: "1" })}`}>
                   {shorter}
                 </Link>
               </>
@@ -221,7 +221,7 @@ function EmptyState({ q, hasFilters }: { q: string; hasFilters: boolean }) {
       ) : null}
       {hasFilters ? (
         <p>
-          <Link className="font-medium text-primary underline underline-offset-4" to={`/search?${withoutFilters}`}>
+          <Link className="font-medium text-foreground underline underline-offset-4" to={`/search?${withoutFilters}`}>
             Clear all filters
           </Link>{" "}
           <span className="text-muted-foreground">and search everything.</span>

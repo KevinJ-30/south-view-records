@@ -28,11 +28,11 @@ function NotFound() {
   usePageTitle("Page not found");
   return (
     <div className="flex flex-col gap-3">
-      <h1 tabIndex={-1} className="font-heading text-3xl font-semibold text-primary outline-none">
+      <h1 tabIndex={-1} className="font-heading text-3xl font-semibold text-foreground outline-none">
         Page not found
       </h1>
       <p>
-        <Link to="/" className="font-medium text-primary underline underline-offset-4">
+        <Link to="/" className="font-medium text-foreground underline underline-offset-4">
           Go to the search page
         </Link>
       </p>

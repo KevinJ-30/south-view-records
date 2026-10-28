@@ -19,14 +19,14 @@ export function RecordPage() {
     <div className="flex flex-col gap-6">
       <Link
         to={fromSearch !== undefined ? `/search${fromSearch}` : "/search"}
-        className="inline-flex w-fit items-center gap-1.5 rounded-sm font-medium text-primary underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        className="inline-flex w-fit items-center gap-1.5 rounded-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-[3px] focus-visible:ring-ring/50"
       >
         <ArrowLeftIcon aria-hidden="true" className="size-4" />
         {fromSearch !== undefined ? "Back to results" : "Search all records"}
       </Link>
 
       {/* One <h1> element across loading, error, and loaded states keeps keyboard focus on it. */}
-      <h1 tabIndex={-1} className="font-heading text-3xl font-semibold break-words text-primary outline-none sm:text-4xl">
+      <h1 tabIndex={-1} className="font-heading text-3xl font-semibold break-words text-foreground outline-none sm:text-4xl">
         {record.isPending ? (
           "Loading record…"
         ) : record.isError ? (
@@ -123,7 +123,7 @@ function Section({ title, description, children }: { title: string; description?
   const id = `section-${title.toLowerCase().replace(/\W+/g, "-")}`;
   return (
     <section aria-labelledby={id} className="rounded-2xl border border-border bg-card p-5">
-      <h2 id={id} className="font-heading text-xl font-semibold text-primary">
+      <h2 id={id} className="font-heading text-xl font-semibold text-foreground">
         {title}
       </h2>
       {description ? <p className="mt-1 text-sm text-muted-foreground">{description}</p> : null}

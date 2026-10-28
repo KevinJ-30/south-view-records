@@ -14,7 +14,7 @@ export function HomePage() {
       <div className="flex flex-col items-center gap-6 text-center">
         <img src={logo} alt="South-View Burial Records Index" className="w-44 sm:w-56" />
         <div className="flex flex-col gap-3">
-          <h1 tabIndex={-1} className="font-heading text-3xl font-semibold text-primary outline-none sm:text-4xl">
+          <h1 tabIndex={-1} className="font-heading text-3xl font-semibold text-foreground outline-none sm:text-4xl">
             Find a burial record
           </h1>
           <p className="mx-auto max-w-xl text-base text-muted-foreground sm:text-lg">
@@ -28,7 +28,7 @@ export function HomePage() {
 
       {stats.data ? (
         <section aria-labelledby="coverage" className="rounded-2xl border border-border bg-card p-5">
-          <h2 id="coverage" className="font-heading text-lg font-semibold text-primary">
+          <h2 id="coverage" className="font-heading text-lg font-semibold text-foreground">
             What’s transcribed so far
           </h2>
           <p className="mt-1 text-muted-foreground">

@@ -82,7 +82,7 @@ export function AdminPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 tabIndex={-1} className="font-heading text-3xl font-semibold text-primary outline-none">
+      <h1 tabIndex={-1} className="font-heading text-3xl font-semibold text-foreground outline-none">
         Manage records
       </h1>
       {credentials === null || wrongPassword !== null ? (
@@ -117,7 +117,7 @@ function SignInForm({ error, onSignIn }: { error: string | null; onSignIn: (cred
         onSignIn({ username: String(form.get("username") ?? ""), password: String(form.get("password") ?? "") });
       }}
     >
-      <h2 className="font-heading text-xl font-semibold text-primary">Sign in</h2>
+      <h2 className="font-heading text-xl font-semibold text-foreground">Sign in</h2>
       {error ? (
         <p role="alert" className="font-medium text-destructive">
           {error}
@@ -245,18 +245,58 @@ function RecordList({
     placeholderData: keepPreviousData,
   });
   const invalidate = useInvalidateRecords();
+  /** Records ticked for deletion, kept while paging so a selection can span pages. */
+  const [selected, setSelected] = useState<Map<number, Burial>>(new Map());
   const remove = useMutation({
-    mutationFn: (burial: Burial) => deleteBurial(credentials, burial.id),
-    onSuccess: async (_, burial) => {
+    // One request per record; failures are reported without stopping the rest.
+    mutationFn: async (burials: Burial[]) => {
+      const results = await Promise.allSettled(burials.map((burial) => deleteBurial(credentials, burial.id)));
+      return burials.flatMap((burial, index) => {
+        const result = results[index];
+        return result.status === "rejected" ? [{ burial, reason: (result.reason as Error).message }] : [];
+      });
+    },
+    onSuccess: async (failed, burials) => {
       await invalidate();
-      onNotice(`Deleted “${burial.nameAsWritten}” (record #${burial.id}).`);
+      const deleted = burials.filter((burial) => !failed.some((failure) => failure.burial.id === burial.id));
+      setSelected((current) => {
+        const next = new Map(current);
+        for (const burial of deleted) next.delete(burial.id);
+        return next;
+      });
+      if (deleted.length) {
+        onNotice(
+          deleted.length === 1
+            ? `Deleted “${deleted[0].nameAsWritten}” (record #${deleted[0].id}).`
+            : `Deleted ${deleted.length} records.`,
+        );
+      }
+      if (failed.length) throw new Error(failed.map((f) => `“${f.burial.nameAsWritten}”: ${f.reason}`).join("; "));
     },
   });
+
+  const toggle = (burial: Burial, on: boolean) =>
+    setSelected((current) => {
+      const next = new Map(current);
+      if (on) next.set(burial.id, burial);
+      else next.delete(burial.id);
+      return next;
+    });
+
+  const confirmDelete = (burials: Burial[]) => {
+    const names = burials.slice(0, 5).map((burial) => `• ${burial.nameAsWritten} (#${burial.id})`);
+    if (burials.length > 5) names.push(`• and ${burials.length - 5} more`);
+    const message =
+      burials.length === 1
+        ? `Delete “${burials[0].nameAsWritten}” (record #${burials[0].id})? This can’t be undone.`
+        : `Delete these ${burials.length} records? This can’t be undone.\n\n${names.join("\n")}`;
+    if (window.confirm(message)) remove.mutate(burials);
+  };
 
   return (
     <section aria-labelledby={`${id}-heading`} aria-busy={results.isFetching} className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id={`${id}-heading`} className="font-heading text-xl font-semibold text-primary">
+        <h2 id={`${id}-heading`} className="font-heading text-xl font-semibold text-foreground">
           Records
         </h2>
         <Button className="h-11 px-5" onClick={onAdd}>
@@ -271,6 +311,7 @@ function RecordList({
           event.preventDefault();
           setQ(draft.trim());
           setPage(1);
+          setSelected(new Map());
         }}
       >
         <label htmlFor={`${id}-q`} className="sr-only">
@@ -315,13 +356,43 @@ function RecordList({
             {results.data.total} {results.data.total === 1 ? "record" : "records"}
             {q ? ` for “${q}”` : ""}
           </p>
+          <SelectionBar
+            pageItems={results.data.items}
+            selected={selected}
+            pending={remove.isPending}
+            onSelectPage={(on) =>
+              setSelected((current) => {
+                const next = new Map(current);
+                for (const burial of results.data.items) {
+                  if (on) next.set(burial.id, burial);
+                  else next.delete(burial.id);
+                }
+                return next;
+              })
+            }
+            onClear={() => setSelected(new Map())}
+            onDelete={() => confirmDelete([...selected.values()])}
+          />
           <ul className="flex flex-col divide-y divide-border rounded-2xl border border-border bg-card">
             {results.data.items.map((burial) => (
-              <li key={burial.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+              <li
+                key={burial.id}
+                className={cn(
+                  "flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3",
+                  selected.has(burial.id) && "bg-muted/60",
+                )}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.has(burial.id)}
+                  onChange={(event) => toggle(burial, event.target.checked)}
+                  aria-label={`Select ${burial.nameAsWritten} (#${burial.id})`}
+                  className="size-5 shrink-0 accent-primary"
+                />
                 <div className="min-w-0 flex-1">
                   <Link
                     to={`/records/${burial.id}`}
-                    className={cn("font-medium break-words text-primary hover:underline", focusRing)}
+                    className={cn("font-medium break-words text-foreground underline-offset-4 hover:underline", focusRing)}
                   >
                     {burial.nameAsWritten}
                   </Link>
@@ -334,15 +405,7 @@ function RecordList({
                   <Button variant="outline" onClick={() => onEdit(burial)}>
                     <PencilIcon aria-hidden="true" /> Edit<span className="sr-only"> {burial.nameAsWritten}</span>
                   </Button>
-                  <Button
-                    variant="destructive"
-                    disabled={remove.isPending && remove.variables?.id === burial.id}
-                    onClick={() => {
-                      if (window.confirm(`Delete “${burial.nameAsWritten}” (record #${burial.id})? This can’t be undone.`)) {
-                        remove.mutate(burial);
-                      }
-                    }}
-                  >
+                  <Button variant="destructive" disabled={remove.isPending} onClick={() => confirmDelete([burial])}>
                     <Trash2Icon aria-hidden="true" /> Delete<span className="sr-only"> {burial.nameAsWritten}</span>
                   </Button>
                 </div>
@@ -370,6 +433,60 @@ function RecordList({
         </>
       )}
     </section>
+  );
+}
+
+/** "Select all on this page", the selection count, and the bulk delete button. */
+function SelectionBar({
+  pageItems,
+  selected,
+  pending,
+  onSelectPage,
+  onClear,
+  onDelete,
+}: {
+  pageItems: Burial[];
+  selected: Map<number, Burial>;
+  pending: boolean;
+  onSelectPage: (on: boolean) => void;
+  onClear: () => void;
+  onDelete: () => void;
+}) {
+  const onPage = pageItems.filter((burial) => selected.has(burial.id)).length;
+  const allOnPage = pageItems.length > 0 && onPage === pageItems.length;
+  const offPage = selected.size - onPage;
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-2">
+      <label className="flex items-center gap-3 py-1">
+        <input
+          type="checkbox"
+          checked={allOnPage}
+          ref={(element) => {
+            if (element) element.indeterminate = onPage > 0 && !allOnPage;
+          }}
+          onChange={(event) => onSelectPage(event.target.checked)}
+          className="size-5 accent-primary"
+        />
+        Select all on this page
+      </label>
+      <div className="flex flex-wrap items-center gap-2">
+        {selected.size > 0 ? (
+          <>
+            <span className="text-sm text-muted-foreground" aria-live="polite">
+              {selected.size} selected{offPage > 0 ? ` (${offPage} on other pages)` : ""}
+            </span>
+            <Button variant="ghost" onClick={onClear}>
+              Clear
+            </Button>
+          </>
+        ) : null}
+        <Button variant="destructive" disabled={selected.size === 0 || pending} onClick={onDelete}>
+          {pending ? <Loader2Icon className="animate-spin" aria-hidden="true" /> : <Trash2Icon aria-hidden="true" />}
+          Delete selected
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -461,13 +578,13 @@ function RecordEditor({
 
   return (
     <section aria-labelledby={`${id}-heading`} className="flex flex-col gap-4">
-      <h2 id={`${id}-heading`} className="font-heading text-xl font-semibold text-primary">
+      <h2 id={`${id}-heading`} className="font-heading text-xl font-semibold text-foreground">
         {burial ? `Edit record #${burial.id}` : "Add a record"}
       </h2>
       <form className="flex flex-col gap-5" onSubmit={onSubmit}>
         {FIELD_GROUPS.map((group) => (
           <fieldset key={group.title} className="rounded-2xl border border-border bg-card p-5">
-            <legend className="px-1 font-heading text-lg font-semibold text-primary">{group.title}</legend>
+            <legend className="px-1 font-heading text-lg font-semibold text-foreground">{group.title}</legend>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {group.fields.map((field) => (
                 <Field key={field.name} field={field} burial={burial} />
