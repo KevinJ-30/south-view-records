@@ -25,7 +25,15 @@ pnpm test
 ```
 
 Records load from every `*.csv` in `data/` when the server starts. With `SUPABASE_URL` and `SUPABASE_KEY` set (see `.env.example`), records load from the
-Supabase `burial_records` table instead, once at startup (restart to pick up new rows).
+Supabase `burial_records` table instead, and are re-read every minute.
+
+## Admin page
+
+Records can be added, edited, and deleted at the unlinked path `ADMIN_PATH` in
+`web/src/routes/admin.tsx`. The sign-in comes from `ADMIN_USERNAME` and `ADMIN_PASSWORD`
+(placeholder defaults are in `src/routes/admin.ts`; set real ones in Vercel). Edits are
+written to Supabase, so `SUPABASE_KEY` must be allowed to write `burial_records` (the
+service role key, or RLS policies that allow it). With CSV files, edits last only until restart.
 
 ## Adding ledger pages
 
@@ -81,6 +89,12 @@ uses the API field names above.
 
 `{ total, infants, undated, earliestDate, latestDate, byMonth: [{ month, total, infants }], byPlat: [{ plat, total }], sourcePages }`
 
+### Admin: `/api/admin/*`
+
+Every request needs HTTP Basic credentials (`401` otherwise). `GET /session` checks them.
+`POST /burials` adds a record (body: a `Burial` without `id`; the next id is assigned),
+`PUT /burials/:id` replaces one, `DELETE /burials/:id` removes one (`204`).
+
 ## Code layout
 
 - `src/app.ts`: builds the Hono app. `src/index.ts` serves it on port 8080; `api/index.ts` is the Vercel function.
@@ -90,3 +104,4 @@ uses the API field names above.
 - `src/data/load.ts`: CSV parsing and validation.
 - `src/data/match.ts`, `src/data/abbreviations.ts`: name matching. Add abbreviations to the list as they turn up.
 - `src/routes/burials.ts`: HTTP routes and parameter validation.
+- `src/routes/admin.ts`: the signed-in add/edit/delete routes and record validation.

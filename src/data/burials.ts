@@ -1,7 +1,7 @@
 import path from "node:path";
 import { loadBurialDirectory } from "./load.js";
 import { matchName, type NameMatch } from "./match.js";
-import type { Burial, BurialHit, BurialRepository, SearchParams, SearchResult, Stats } from "./types.js";
+import type { Burial, BurialHit, BurialInput, BurialRepository, SearchParams, SearchResult, Stats } from "./types.js";
 
 export const DEFAULT_DATA_DIR = path.resolve(import.meta.dirname, "../../data");
 
@@ -28,8 +28,13 @@ function sameValue(actual: string | null, wanted: string | undefined): boolean {
 }
 
 export function createMemoryRepository(records: Burial[]): BurialRepository {
-  const burials = [...records].sort(compareLedgerOrder);
-  const byId = new Map(burials.map((burial) => [burial.id, burial]));
+  let burials: Burial[] = [];
+  let byId = new Map<number, Burial>();
+  const replaceAll = (next: Burial[]) => {
+    burials = [...next].sort(compareLedgerOrder);
+    byId = new Map(burials.map((burial) => [burial.id, burial]));
+  };
+  replaceAll(records);
 
   return {
     async search(params: SearchParams): Promise<SearchResult> {
@@ -100,6 +105,25 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
         byPlat: [...plats].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).map(([plat, total]) => ({ plat, total })),
         sourcePages: [...new Set(burials.map((burial) => burial.sourcePage))].sort((a, b) => a - b),
       };
+    },
+
+    async create(input: BurialInput): Promise<Burial> {
+      const burial = { id: burials.reduce((max, existing) => Math.max(max, existing.id), 0) + 1, ...input };
+      replaceAll([...burials, burial]);
+      return burial;
+    },
+
+    async update(id: number, input: BurialInput): Promise<Burial | null> {
+      if (!byId.has(id)) return null;
+      const burial = { id, ...input };
+      replaceAll(burials.map((existing) => (existing.id === id ? burial : existing)));
+      return burial;
+    },
+
+    async remove(id: number): Promise<boolean> {
+      if (!byId.has(id)) return false;
+      replaceAll(burials.filter((existing) => existing.id !== id));
+      return true;
     },
   };
 }

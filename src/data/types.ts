@@ -23,6 +23,12 @@ export type Burial = {
   transcriberNote: string | null;
 };
 
+/** A burial as the admin page sends it; the server assigns the id of a new record. */
+export type BurialInput = Omit<Burial, "id">;
+
+/** A record that cannot be saved as given. Routes answer it with 400 and the message. */
+export class InvalidRecord extends Error {}
+
 export type MatchType = "exact" | "abbreviation" | "fuzzy";
 
 export type BurialHit = Burial & { matchType: MatchType | null };
@@ -64,4 +70,10 @@ export interface BurialRepository {
   search(params: SearchParams): Promise<SearchResult>;
   getById(id: number): Promise<Burial | null>;
   stats(): Promise<Stats>;
+  /** Adds a record with the next free id. */
+  create(input: BurialInput): Promise<Burial>;
+  /** Replaces a record; null when no record has that id. */
+  update(id: number, input: BurialInput): Promise<Burial | null>;
+  /** Deletes a record; false when no record has that id. */
+  remove(id: number): Promise<boolean>;
 }

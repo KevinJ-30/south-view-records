@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { rowToBurial, type BurialRow } from "../src/data/supabase.js";
+import { burialToRow, rowToBurial, splitAgeUnderOneYear, type BurialRow } from "../src/data/supabase.js";
+import { InvalidRecord } from "../src/data/types.js";
 
 const row: BurialRow = {
   index_record: 6,
@@ -60,5 +61,27 @@ describe("rowToBurial", () => {
     expect(burial.ageYears).toBeNull();
     expect(burial.ageMonthsOrDays).toBe("7 days");
     expect(burial.uncertainFields).toEqual([]);
+  });
+});
+
+describe("burialToRow", () => {
+  it("round-trips through rowToBurial", () => {
+    const burial = rowToBurial(row);
+    const { id, ...input } = burial;
+    const written = burialToRow(input);
+    expect(written.uncertain_fields).toEqual(["name", "lot"]);
+    expect(rowToBurial({ index_record: id, ...written })).toEqual(burial);
+  });
+
+  it("splits ages under a year back into months and days", () => {
+    expect(splitAgeUnderOneYear("1 month 2 days")).toEqual({ age_months: 1, age_days: 2 });
+    expect(splitAgeUnderOneYear("7 days")).toEqual({ age_months: null, age_days: 7 });
+    expect(splitAgeUnderOneYear("3")).toEqual({ age_months: 3, age_days: null });
+    expect(() => splitAgeUnderOneYear("about a week")).toThrow(InvalidRecord);
+  });
+
+  it("rejects numbers the table can't store", () => {
+    const { id: _, ...input } = rowToBurial(row);
+    expect(() => burialToRow({ ...input, ageYears: "abt. 40" })).toThrow(InvalidRecord);
   });
 });

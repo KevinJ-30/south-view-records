@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createBrowserRouter, Link, RouterProvider } from "react-router";
 import { Layout } from "@/components/layout";
 import { usePageTitle } from "@/hooks/use-page-title";
+import { ADMIN_PATH, AdminPage } from "@/routes/admin";
 import { HomePage } from "@/routes/home";
 import { RecordPage } from "@/routes/record";
 import { SearchPage } from "@/routes/search";
@@ -17,6 +18,7 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "search", element: <SearchPage /> },
       { path: "records/:id", element: <RecordPage /> },
+      { path: ADMIN_PATH, element: <AdminPage /> },
       { path: "*", element: <NotFound /> },
     ],
   },
