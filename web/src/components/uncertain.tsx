@@ -79,7 +79,7 @@ export function UncertaintyTag({ kind, className }: { kind: UncertaintyKind; cla
       )}
     >
       <Icon aria-hidden="true" className="size-3.5" />
-      {kind.label} uncertain
+      {kind.tag ?? `${kind.label} uncertain`}
     </span>
   );
 }

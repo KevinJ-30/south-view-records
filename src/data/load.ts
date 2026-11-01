@@ -1,7 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { parseCsv } from "./csv.js";
-import type { Burial } from "./types.js";
+import type { Burial, UncertainField } from "./types.js";
 
 export const CSV_COLUMNS = [
   "id",
@@ -25,8 +25,11 @@ export const CSV_COLUMNS = [
 
 type Column = (typeof CSV_COLUMNS)[number];
 
-/** Ledger field names used in uncertain_fields, mapped to API field names. */
-export const UNCERTAIN_FIELD_NAMES: Record<string, keyof Burial> = {
+/**
+ * Ledger field names used in uncertain_fields, mapped to API field names. When two names map
+ * to one field, the first is the one written back to Supabase.
+ */
+export const UNCERTAIN_FIELD_NAMES: Record<string, UncertainField> = {
   name: "nameAsWritten",
   name_as_written: "nameAsWritten",
   entry_number: "entryNo",
@@ -41,6 +44,9 @@ export const UNCERTAIN_FIELD_NAMES: Record<string, keyof Burial> = {
   lot: "lot",
   range: "range",
   grave: "grave",
+  ledger_page: "sourcePage",
+  source_page: "sourcePage",
+  extra_marks: "extraMarks",
 };
 
 export class CsvFormatError extends Error {

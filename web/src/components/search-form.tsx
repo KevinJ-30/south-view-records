@@ -178,7 +178,7 @@ export function SearchForm({ size = "default", autoFocus = false }: { size?: "de
               <optgroup label="One kind">
                 {UNCERTAINTY_KINDS.map((kind) => (
                   <option key={kind.id} value={kind.id}>
-                    Uncertain {kind.label.toLowerCase()}
+                    {kind.filter ?? `Uncertain ${kind.label.toLowerCase()}`}
                   </option>
                 ))}
               </optgroup>

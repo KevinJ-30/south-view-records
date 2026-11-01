@@ -22,9 +22,11 @@ export type BurialRow = {
   name_as_written: string | null;
   is_infant_of_parent: boolean;
   burial_date: string | null;
-  age_years: number | null;
+  age_years: number | string | null;
   age_months: number | null;
   age_days: number | null;
+  /** The under-a-year age as written, kept when it isn't in the "3 months" / "7 days" form. */
+  age_months_or_days?: string | null;
   plat: string | null;
   section: number | string | null;
   block: number | string | null;
@@ -59,7 +61,7 @@ export function rowToBurial(row: BurialRow): Burial {
     isInfantOf: row.is_infant_of_parent,
     burialDate: row.burial_date,
     ageYears: text(row.age_years),
-    ageMonthsOrDays: ageUnderOneYear(row.age_months, row.age_days),
+    ageMonthsOrDays: ageUnderOneYear(row.age_months, row.age_days) ?? text(row.age_months_or_days),
     plat: text(row.plat),
     section: text(row.section),
     block: text(row.block),
@@ -95,6 +97,20 @@ export function splitAgeUnderOneYear(value: string | null): { age_months: number
   return { age_months: match[1] ? Number(match[1]) : null, age_days: match[2] ? Number(match[2]) : null };
 }
 
+/**
+ * Stores an under-a-year age as months and days when it reads like "3 months" or "7 days",
+ * and always keeps the text as written, so ages like "2 wks" are saved rather than refused.
+ */
+function ageColumns(value: string | null) {
+  let parts: ReturnType<typeof splitAgeUnderOneYear> = { age_months: null, age_days: null };
+  try {
+    parts = splitAgeUnderOneYear(value);
+  } catch (error) {
+    if (!(error instanceof InvalidRecord)) throw error;
+  }
+  return { ...parts, age_months_or_days: value };
+}
+
 /** Maps a Burial to the burial_records columns, without index_record. */
 export function burialToRow(input: BurialInput): Omit<BurialRow, "index_record"> {
   return {
@@ -105,7 +121,7 @@ export function burialToRow(input: BurialInput): Omit<BurialRow, "index_record">
     is_infant_of_parent: input.isInfantOf,
     burial_date: input.burialDate,
     age_years: wholeNumber("Age in years", input.ageYears),
-    ...splitAgeUnderOneYear(input.ageMonthsOrDays),
+    ...ageColumns(input.ageMonthsOrDays),
     plat: input.plat,
     section: wholeNumber("Section", input.section),
     block: wholeNumber("Block", input.block),

@@ -1,4 +1,4 @@
-import type { Burial } from "./types.js";
+import type { Burial, UncertainField } from "./types.js";
 
 /** Kinds of uncertain reading, by the fields each covers. Keep in sync with web/src/lib/uncertainty.ts. */
 export const UNCERTAINTY_TYPES = {
@@ -6,8 +6,9 @@ export const UNCERTAINTY_TYPES = {
   date: ["burialDate"],
   age: ["ageYears", "ageMonthsOrDays"],
   location: ["plat", "section", "block", "lot", "range", "grave"],
-  entry: ["entryNo"],
-} as const satisfies Record<string, readonly (keyof Burial)[]>;
+  entry: ["entryNo", "sourcePage"],
+  marks: ["extraMarks"],
+} as const satisfies Record<string, readonly UncertainField[]>;
 
 export type UncertaintyType = keyof typeof UNCERTAINTY_TYPES;
 

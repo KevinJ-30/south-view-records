@@ -88,6 +88,37 @@ describe("burialToRow", () => {
     expect(() => splitAgeUnderOneYear("about a week")).toThrow(InvalidRecord);
   });
 
+  it("reads ages under a year that are only in age_months_or_days", () => {
+    expect(rowToBurial({ ...row, age_years: null, age_months_or_days: "2 wks" }).ageMonthsOrDays).toBe("2 wks");
+    expect(rowToBurial({ ...row, age_months: 3, age_months_or_days: "3 mos" }).ageMonthsOrDays).toBe("3 months");
+  });
+
+  it("keeps an under-a-year age it can't split as written", () => {
+    const { id: _, ...input } = rowToBurial(row);
+    expect(burialToRow({ ...input, ageMonthsOrDays: "2 wks" })).toMatchObject({
+      age_months: null,
+      age_days: null,
+      age_months_or_days: "2 wks",
+    });
+    expect(burialToRow({ ...input, ageMonthsOrDays: "3 months" })).toMatchObject({ age_months: 3, age_months_or_days: "3 months" });
+  });
+
+  it("reads the flags the ledger import added", () => {
+    expect(rowToBurial({ ...row, uncertain_fields: ["ledger_page", "extra_marks"] }).uncertainFields).toEqual([
+      "sourcePage",
+      "extraMarks",
+    ]);
+  });
+
+  it("writes flags back under the names the ledger import uses", () => {
+    const { id: _, ...input } = rowToBurial(row);
+    expect(burialToRow({ ...input, uncertainFields: ["entryNo", "sourcePage", "extraMarks"] }).uncertain_fields).toEqual([
+      "entry_number",
+      "ledger_page",
+      "extra_marks",
+    ]);
+  });
+
   it("rejects numbers the table can't store", () => {
     const { id: _, ...input } = rowToBurial(row);
     expect(() => burialToRow({ ...input, ageYears: "abt. 40" })).toThrow(InvalidRecord);

@@ -524,12 +524,18 @@ const FIELD_GROUPS: { title: string; fields: FieldSpec[] }[] = [
   {
     title: "Ledger source",
     fields: [
-      { name: "sourcePage", label: "Ledger page", type: "number", required: true },
+      { name: "sourcePage", label: "Ledger page", type: "number", required: true, uncertain: true },
       { name: "lineOnPage", label: "Line on page", type: "number", required: true },
       { name: "entryNo", label: "Entry number", hint: "A whole number, 1 or more", uncertain: true },
     ],
   },
 ];
+
+/** Flags the form has a checkbox for. Any others on a record are kept as they are when it is saved. */
+const FORM_FLAGS = new Set<string>([
+  ...FIELD_GROUPS.flatMap((group) => group.fields.filter((field) => field.uncertain).map((field) => field.name)),
+  "extraMarks",
+]);
 
 function RecordEditor({
   credentials,
@@ -595,9 +601,25 @@ function RecordEditor({
                   Infant of a parent (listed as “Inf. of …”)
                 </label>
               ) : null}
+              {group.title === "Ledger source" ? (
+                <label className="flex items-center gap-2 sm:col-span-2">
+                  <input
+                    type="checkbox"
+                    name="uncertain"
+                    value="extraMarks"
+                    defaultChecked={burial?.uncertainFields.includes("extraMarks") ?? false}
+                    className="size-4"
+                  />
+                  Extra marks on the row (stray writing, strike-throughs, or overlapping text)
+                </label>
+              ) : null}
             </div>
           </fieldset>
         ))}
+
+        {burial?.uncertainFields
+          .filter((flag) => !FORM_FLAGS.has(flag))
+          .map((flag) => <input key={flag} type="hidden" name="uncertain" value={flag} />)}
 
         <div className="flex flex-col gap-1">
           <label htmlFor={`${id}-note`} className="text-sm font-medium">

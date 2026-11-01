@@ -85,6 +85,7 @@
     --uncertain-age: #8F4A0E;
     --uncertain-location: #A0305A;
     --uncertain-entry: #4B5563;
+    --uncertain-marks: #0F6670;
     --chart-1: var(--brand-green);
     --chart-2: var(--brand-gold);
     --chart-3: #54675C;
@@ -153,6 +154,7 @@
   [data-uncertainty="age"] { --uncertainty: var(--uncertain-age); }
   [data-uncertainty="location"] { --uncertainty: var(--uncertain-location); }
   [data-uncertainty="entry"] { --uncertainty: var(--uncertain-entry); }
+  [data-uncertainty="marks"] { --uncertainty: var(--uncertain-marks); }
 
   /* Marks a value the transcriber could not read clearly: a tint and underline in its kind's color. */
   .uncertain {

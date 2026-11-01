@@ -1,7 +1,7 @@
-import { CalendarDaysIcon, HashIcon, HourglassIcon, MapPinIcon, UserRoundIcon, type LucideIcon } from "lucide-react";
+import { CalendarDaysIcon, HashIcon, HourglassIcon, MapPinIcon, PenLineIcon, UserRoundIcon, type LucideIcon } from "lucide-react";
 import type { Burial } from "@/lib/api";
 
-export type UncertaintyType = "name" | "date" | "age" | "location" | "entry";
+export type UncertaintyType = "name" | "date" | "age" | "location" | "entry" | "marks";
 
 export type UncertaintyKind = {
   id: UncertaintyType;
@@ -10,6 +10,10 @@ export type UncertaintyKind = {
   fields: readonly string[];
   icon: LucideIcon;
   detail: string;
+  /** Tag text, when "<label> uncertain" doesn't read well. */
+  tag?: string;
+  /** Search filter option, when "Uncertain <label>" doesn't read well. */
+  filter?: string;
 };
 
 /**
@@ -47,10 +51,20 @@ export const UNCERTAINTY_KINDS: UncertaintyKind[] = [
   },
   {
     id: "entry",
-    label: "Entry number",
-    fields: ["entryNo"],
+    label: "Ledger entry",
+    fields: ["entryNo", "sourcePage"],
     icon: HashIcon,
-    detail: "The transcriber couldn’t read the ledger entry number clearly.",
+    detail: "The transcriber couldn’t read the entry number or page number clearly.",
+  },
+  {
+    id: "marks",
+    label: "Extra marks",
+    // Not a value on the record: stray writing, strike-throughs, or overlapping text on the row.
+    fields: ["extraMarks"],
+    icon: PenLineIcon,
+    detail: "The row has stray writing, strike-throughs, or overlapping text, so read it with care.",
+    tag: "Extra marks on row",
+    filter: "Extra marks on the row",
   },
 ];
 

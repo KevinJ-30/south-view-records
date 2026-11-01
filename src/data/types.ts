@@ -25,6 +25,12 @@ export type Burial = {
   transcriberNote: string | null;
 };
 
+/**
+ * What uncertainFields can name: a Burial field, or "extraMarks" for stray writing,
+ * strike-throughs, or overlapping text on the row that make it harder to read.
+ */
+export type UncertainField = keyof Burial | "extraMarks";
+
 /** A burial as the admin page sends it; the server assigns the id of a new record. */
 export type BurialInput = Omit<Burial, "id">;
 
