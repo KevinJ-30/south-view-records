@@ -18,7 +18,8 @@ export type BurialRow = {
   ledger_page: number;
   line_on_page: number;
   entry_number: number | null;
-  name_as_written: string;
+  /** Null on rows imported without a name; those burials can still be found by the other filters. */
+  name_as_written: string | null;
   is_infant_of_parent: boolean;
   burial_date: string | null;
   age_years: number | null;
@@ -54,7 +55,7 @@ export function rowToBurial(row: BurialRow): Burial {
     sourcePage: row.ledger_page,
     lineOnPage: row.line_on_page,
     entryNo: text(row.entry_number),
-    nameAsWritten: row.name_as_written,
+    nameAsWritten: text(row.name_as_written) ?? "",
     isInfantOf: row.is_infant_of_parent,
     burialDate: row.burial_date,
     ageYears: text(row.age_years),

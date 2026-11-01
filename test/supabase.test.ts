@@ -46,6 +46,14 @@ describe("rowToBurial", () => {
     });
   });
 
+  it("reads the entry_number flag the ledger import uses", () => {
+    expect(rowToBurial({ ...row, uncertain_fields: ["entry_number"] }).uncertainFields).toEqual(["entryNo"]);
+  });
+
+  it("reads a row with no name as a blank name", () => {
+    expect(rowToBurial({ ...row, name_as_written: null }).nameAsWritten).toBe("");
+  });
+
   it("turns missing values into null and writes under-a-year ages like the ledger", () => {
     const burial = rowToBurial({
       ...row,

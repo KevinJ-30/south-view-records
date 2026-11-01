@@ -29,6 +29,7 @@ type Column = (typeof CSV_COLUMNS)[number];
 export const UNCERTAIN_FIELD_NAMES: Record<string, keyof Burial> = {
   name: "nameAsWritten",
   name_as_written: "nameAsWritten",
+  entry_number: "entryNo",
   entry_no: "entryNo",
   burial_date: "burialDate",
   date: "burialDate",
