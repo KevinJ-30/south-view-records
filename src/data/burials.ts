@@ -57,6 +57,7 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
       const dates = params.dates ?? "ledger";
       for (const burial of burials) {
         if (dates !== "all" && inLedgerYears(burial) !== (dates === "ledger")) continue;
+        if (params.undated && burial.burialDate) continue;
         if (params.from && (!burial.burialDate || burial.burialDate < params.from)) continue;
         if (params.to && (!burial.burialDate || burial.burialDate > params.to)) continue;
         if (params.infant !== undefined && burial.isInfantOf !== params.infant) continue;

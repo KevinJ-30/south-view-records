@@ -1,5 +1,5 @@
 /** Search filters kept in the /search URL, besides the name query and page. */
-export const FILTERS = ["from", "to", "infant", "uncertain", "plat", "section", "block", "lot"] as const;
+export const FILTERS = ["from", "to", "undated", "infant", "uncertain", "plat", "section", "block", "lot"] as const;
 
 export type Filter = (typeof FILTERS)[number];
 
@@ -50,14 +50,18 @@ const pad = (value: number) => String(value).padStart(2, "0");
  * Turns typed date parts into a YYYY-MM-DD bound. A blank day or month widens the bound to
  * cover the whole month or year: "From 1905" is 1905-01-01, "To October 1905" is 1905-10-31.
  */
-export function partsToDate(parts: DateParts, bound: DateBound): { value: string | null; error: string | null } {
+export function partsToDate(
+  parts: DateParts,
+  bound: DateBound,
+  anyYear = false,
+): { value: string | null; error: string | null } {
   const year = parts.year.trim();
   const day = parts.day.trim();
   const month = parts.month;
   if (!year && !month && !day) return { value: null, error: null };
   if (!year) return { value: null, error: "Enter a year, like 1905." };
   if (!/^\d{4}$/.test(year)) return { value: null, error: "Enter the year as 4 digits, like 1905." };
-  if (Number(year) < LEDGER_YEARS.first || Number(year) > LEDGER_YEARS.last) {
+  if (!anyYear && (Number(year) < LEDGER_YEARS.first || Number(year) > LEDGER_YEARS.last)) {
     return { value: null, error: `The ledgers cover ${LEDGER_YEARS.first} to ${LEDGER_YEARS.last}. Enter a year in that range.` };
   }
   if (day && !month) return { value: null, error: "Choose a month for this day." };
@@ -72,8 +76,11 @@ export function partsToDate(parts: DateParts, bound: DateBound): { value: string
   return { value: `${year}-${pad(monthNumber)}-${pad(dayNumber)}`, error: null };
 }
 
-/** Reads the filter fields of a search form, checking the dates. */
-export function readFilters(form: FormData): {
+/** Reads the filter fields of a search form, checking the dates. `anyYear` allows years outside LEDGER_YEARS. */
+export function readFilters(
+  form: FormData,
+  anyYear = false,
+): {
   values: Partial<Record<Filter, string>>;
   errors: Partial<Record<DateBound, string>>;
 } {
@@ -83,12 +90,16 @@ export function readFilters(form: FormData): {
 
   for (const bound of ["from", "to"] as const) {
     const parts = { year: text(`${bound}Year`), month: text(`${bound}Month`), day: text(`${bound}Day`) };
-    const { value, error } = partsToDate(parts, bound);
+    const { value, error } = partsToDate(parts, bound, anyYear);
     if (error) errors[bound] = error;
     else if (value) values[bound] = value;
   }
   if (values.from && values.to && values.from > values.to) {
     errors.to = "This is before the “From” date. Check the order of the two dates.";
+  }
+  if (text("undated")) {
+    if (values.from || values.to) errors.from = "Clear these dates to see records with no date, or untick that box.";
+    else values.undated = "yes";
   }
 
   for (const name of ["infant", "uncertain", "plat", "section", "block", "lot"] as const) {

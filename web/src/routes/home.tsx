@@ -1,9 +1,20 @@
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router";
 import logo from "@/assets/south-view-logo.png";
 import { SearchForm } from "@/components/search-form";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { getStats } from "@/lib/api";
 import { formatMonth, formatPages } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+const focusRing = "outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
+
+/** "1905-10" -> the /search URL for every burial that month. */
+function monthSearch(month: string): string {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const lastDay = new Date(Date.UTC(year, monthNumber, 0)).getUTCDate();
+  return `/search?${new URLSearchParams({ from: `${month}-01`, to: `${month}-${lastDay}` })}`;
+}
 
 export function HomePage() {
   usePageTitle(null);
@@ -36,17 +47,29 @@ export function HomePage() {
           </p>
           <ul className="mt-3 flex flex-col gap-1">
             {stats.data.byMonth.map((month) => (
-              <li key={month.month} className="flex justify-between gap-4 border-b border-border py-1 last:border-0">
-                <span>{formatMonth(month.month)}</span>
-                <span className="text-muted-foreground tabular-nums">
-                  {month.total} {month.total === 1 ? "burial" : "burials"}
-                </span>
+              <li key={month.month} className="border-b border-border last:border-0">
+                <Link
+                  to={monthSearch(month.month)}
+                  className={cn("flex justify-between gap-4 rounded py-1 hover:bg-muted", focusRing)}
+                >
+                  <span className="text-foreground underline underline-offset-4">{formatMonth(month.month)}</span>
+                  <span className="text-muted-foreground tabular-nums">
+                    {month.total} {month.total === 1 ? "burial" : "burials"}
+                  </span>
+                </Link>
               </li>
             ))}
             {stats.data.undated ? (
-              <li className="flex justify-between gap-4 py-1">
-                <span>Date not recorded</span>
-                <span className="text-muted-foreground tabular-nums">{stats.data.undated}</span>
+              <li>
+                <Link
+                  to="/search?undated=yes"
+                  className={cn("flex justify-between gap-4 rounded py-1 hover:bg-muted", focusRing)}
+                >
+                  <span className="text-foreground underline underline-offset-4">Date not recorded</span>
+                  <span className="text-muted-foreground tabular-nums">
+                    {stats.data.undated} {stats.data.undated === 1 ? "burial" : "burials"}
+                  </span>
+                </Link>
               </li>
             ) : null}
           </ul>

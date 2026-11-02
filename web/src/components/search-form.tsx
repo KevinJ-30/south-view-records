@@ -18,9 +18,20 @@ const inputClass = cn(
 
 /**
  * Name search with the date, plot, infant, and uncertainty filters behind a large toggle.
- * Submitting goes to /search with the name and filters, starting again from page 1.
+ * Submitting goes to `path` (/search by default) with the name and filters, starting again from page 1.
+ * `anyYear` allows dates outside the ledger years, for the admin page.
  */
-export function SearchForm({ size = "default", autoFocus = false }: { size?: "default" | "large"; autoFocus?: boolean }) {
+export function SearchForm({
+  size = "default",
+  autoFocus = false,
+  path = "/search",
+  anyYear = false,
+}: {
+  size?: "default" | "large";
+  autoFocus?: boolean;
+  path?: string;
+  anyYear?: boolean;
+}) {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const id = useId();
@@ -35,7 +46,7 @@ export function SearchForm({ size = "default", autoFocus = false }: { size?: "de
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const { values, errors: found } = readFilters(new FormData(event.currentTarget));
+    const { values, errors: found } = readFilters(new FormData(event.currentTarget), anyYear);
     const firstError = (["from", "to"] as const).find((bound) => found[bound]);
     if (firstError) {
       // Show the panel before moving focus to the date that needs fixing.
@@ -50,15 +61,16 @@ export function SearchForm({ size = "default", autoFocus = false }: { size?: "de
     const next = new URLSearchParams();
     if (query.trim()) next.set("q", query.trim());
     for (const [name, value] of Object.entries(values)) next.set(name, value);
-    navigate(`/search?${next}`);
+    navigate(`${path}?${next}`);
   };
 
   const clearFilters = () => {
     panelRef.current?.querySelectorAll<HTMLInputElement | HTMLSelectElement>("input, select").forEach((element) => {
-      element.value = "";
+      if (element instanceof HTMLInputElement && element.type === "checkbox") element.checked = false;
+      else element.value = "";
     });
     setErrors({});
-    if (activeCount > 0) navigate(`/search?${new URLSearchParams(query.trim() ? { q: query.trim() } : {})}`);
+    if (activeCount > 0) navigate(`${path}?${new URLSearchParams(query.trim() ? { q: query.trim() } : {})}`);
   };
 
   return (
@@ -133,12 +145,23 @@ export function SearchForm({ size = "default", autoFocus = false }: { size?: "de
             {stats.data?.earliestDate && stats.data.latestDate
               ? `Records so far run from ${formatDate(stats.data.earliestDate)} to ${formatDate(stats.data.latestDate)}. `
               : null}
-            Fill in just a year, or a month and year, to cover the whole period. Records with no date are left out.
+            Fill in just a year, or a month and year, to cover the whole period. Records with no date are left out of a
+            date search.
           </p>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <DateField bound="from" label="From" field={field} error={errors.from} defaultIso={params.get("from")} />
             <DateField bound="to" label="To" field={field} error={errors.to} defaultIso={params.get("to")} />
           </div>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              name="undated"
+              value="yes"
+              defaultChecked={Boolean(params.get("undated"))}
+              className="size-5 accent-primary"
+            />
+            Only records with no date recorded
+          </label>
         </fieldset>
 
         <fieldset className="grid grid-cols-2 gap-3 sm:grid-cols-4">

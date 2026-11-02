@@ -59,6 +59,10 @@ export function parseSearch(query: URLSearchParams): SearchParams {
   else if (infantValue === "no" || infantValue === "false") infant = false;
   else if (infantValue !== undefined) throw new BadRequest("infant must be yes or no.");
 
+  const undatedValue = text("undated")?.toLowerCase();
+  if (undatedValue !== undefined && !["yes", "true"].includes(undatedValue)) throw new BadRequest("undated must be yes.");
+  const undated = undatedValue !== undefined;
+
   const uncertain = text("uncertain")?.toLowerCase();
   if (uncertain !== undefined && !UNCERTAINTY_FILTERS.includes(uncertain as UncertaintyFilter)) {
     throw new BadRequest(`uncertain must be one of ${UNCERTAINTY_FILTERS.join(", ")}.`);
@@ -67,6 +71,7 @@ export function parseSearch(query: URLSearchParams): SearchParams {
   const from = date("from");
   const to = date("to");
   if (from && to && from > to) throw new BadRequest("from must be on or before to.");
+  if (undated && (from || to)) throw new BadRequest("undated can't be combined with from or to.");
 
   return {
     q: text("q"),
@@ -77,6 +82,7 @@ export function parseSearch(query: URLSearchParams): SearchParams {
     block: text("block"),
     lot: text("lot"),
     infant,
+    undated: undated || undefined,
     uncertain: uncertain as UncertaintyFilter | undefined,
     page: positive("page", 1),
     pageSize: positive("pageSize", DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE),

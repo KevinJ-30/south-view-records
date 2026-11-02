@@ -1,7 +1,8 @@
 import { useId, useState, type FormEvent } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronLeftIcon, ChevronRightIcon, Loader2Icon, PencilIcon, PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
-import { Link } from "react-router";
+import { ChevronLeftIcon, ChevronRightIcon, Loader2Icon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { Link, useSearchParams } from "react-router";
+import { SearchForm } from "@/components/search-form";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,7 +17,7 @@ import {
   type Burial,
   type BurialInput,
 } from "@/lib/api";
-import { inLedgerYears, LEDGER_YEARS } from "@/lib/filters";
+import { FILTERS, inLedgerYears, LEDGER_YEARS } from "@/lib/filters";
 import { formatCitation, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -235,12 +236,24 @@ function RecordList({
   onNotice: (message: string) => void;
 }) {
   const id = useId();
-  const [draft, setDraft] = useState("");
-  const [q, setQ] = useState("");
-  const [page, setPage] = useState(1);
+  // The name, filters, and page live in the URL, as on /search, so the search form can share them.
+  const [urlParams, setUrlParams] = useSearchParams();
+  const q = urlParams.get("q")?.trim() ?? "";
+  const page = /^\d+$/.test(urlParams.get("page") ?? "") ? Math.max(1, Number(urlParams.get("page"))) : 1;
   const [outsideOnly, setOutsideOnly] = useState(false);
-  const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
-  if (q) params.set("q", q);
+  const setPage = (next: number) =>
+    setUrlParams((current) => {
+      const updated = new URLSearchParams(current);
+      if (next > 1) updated.set("page", String(next));
+      else updated.delete("page");
+      return updated;
+    });
+  const params = new URLSearchParams(urlParams);
+  params.set("page", String(page));
+  params.set("pageSize", String(PAGE_SIZE));
+  const activeFilters = FILTERS.filter((name) => urlParams.get(name));
+  // Remount the form when the URL changes so its fields show the current search.
+  const formKey = [q, ...activeFilters.map((name) => `${name}=${urlParams.get(name)}`)].join("&");
   const results = useQuery({
     queryKey: ["burials", "admin", params.toString(), outsideOnly],
     queryFn: () => searchAdminBurials(credentials, params, outsideOnly),
@@ -249,6 +262,13 @@ function RecordList({
   const invalidate = useInvalidateRecords();
   /** Records ticked for deletion, kept while paging so a selection can span pages. */
   const [selected, setSelected] = useState<Map<number, Burial>>(new Map());
+  // A new search or filter starts a fresh selection; paging keeps it.
+  const selectionKey = `${formKey}|${outsideOnly}`;
+  const [lastSelectionKey, setLastSelectionKey] = useState(selectionKey);
+  if (selectionKey !== lastSelectionKey) {
+    setLastSelectionKey(selectionKey);
+    setSelected(new Map());
+  }
   const remove = useMutation({
     // One request per record; failures are reported without stopping the rest.
     mutationFn: async (burials: Burial[]) => {
@@ -306,32 +326,7 @@ function RecordList({
         </Button>
       </div>
 
-      <form
-        role="search"
-        className="flex gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setQ(draft.trim());
-          setPage(1);
-          setSelected(new Map());
-        }}
-      >
-        <label htmlFor={`${id}-q`} className="sr-only">
-          Search by name
-        </label>
-        <input
-          id={`${id}-q`}
-          type="search"
-          value={draft}
-          onChange={(event) => setDraft(event.target.value)}
-          placeholder="Search by name"
-          autoComplete="off"
-          className={cn(inputClass, "flex-1")}
-        />
-        <Button type="submit" variant="outline" className="h-11 px-4">
-          <SearchIcon aria-hidden="true" /> Search
-        </Button>
-      </form>
+      <SearchForm key={formKey} path={ADMIN_PATH} anyYear />
 
       <label className="flex items-center gap-2">
         <input
@@ -340,7 +335,6 @@ function RecordList({
           onChange={(event) => {
             setOutsideOnly(event.target.checked);
             setPage(1);
-            setSelected(new Map());
           }}
           className="size-5 accent-primary"
         />
@@ -366,13 +360,14 @@ function RecordList({
         </div>
       ) : results.data.total === 0 ? (
         <p className="text-muted-foreground">
-          {q ? `No records match “${q}”.` : outsideOnly ? "No records are dated outside those years." : "There are no records yet."}
+          {q ? `No records match “${q}”.` : activeFilters.length ? "No records match these filters." : outsideOnly ? "No records are dated outside those years." : "There are no records yet."}
         </p>
       ) : (
         <>
           <p className="text-sm text-muted-foreground">
             {results.data.total} {results.data.total === 1 ? "record" : "records"}
             {q ? ` for “${q}”` : ""}
+            {activeFilters.length ? " with these filters" : ""}
           </p>
           <SelectionBar
             pageItems={results.data.items}

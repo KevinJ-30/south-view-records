@@ -174,6 +174,20 @@ describe("GET /stats", () => {
   });
 });
 
+describe("records with no date", () => {
+  it("can be listed on their own", async () => {
+    const result = await search("undated=yes");
+    expect(result.items.map((item) => item.burialDate)).toEqual([null]);
+    expect(names(result)).toEqual(["Inf. of Mattie Allen"]);
+  });
+
+  it("rejects undated with a date range or a bad value", async () => {
+    for (const query of ["undated=yes&from=1905-10-01", "undated=yes&to=1905-10-01", "undated=maybe"]) {
+      expect((await api.request(`/burials?${query}`)).status).toBe(400);
+    }
+  });
+});
+
 describe("records dated outside the ledger years", () => {
   it("are left out of searches, records, and stats", async () => {
     const repository = await loadBurials();

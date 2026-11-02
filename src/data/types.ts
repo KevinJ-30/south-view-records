@@ -50,6 +50,8 @@ export type SearchParams = {
   block?: string;
   lot?: string;
   infant?: boolean;
+  /** Only records with no burial date. Can't be combined with from or to. */
+  undated?: boolean;
   uncertain?: UncertaintyFilter;
   /**
    * Which records by date: "ledger" (the default) hides records dated outside LEDGER_YEARS,
