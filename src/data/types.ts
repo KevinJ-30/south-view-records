@@ -51,6 +51,11 @@ export type SearchParams = {
   lot?: string;
   infant?: boolean;
   uncertain?: UncertaintyFilter;
+  /**
+   * Which records by date: "ledger" (the default) hides records dated outside LEDGER_YEARS,
+   * "outside" finds only those, and "all" includes everything. Only the admin routes set it.
+   */
+  dates?: "ledger" | "outside" | "all";
   page: number;
   pageSize: number;
 };

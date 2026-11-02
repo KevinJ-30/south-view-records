@@ -18,6 +18,18 @@ export const MONTHS = [
   "December",
 ];
 
+/**
+ * Years the ledgers cover. Records dated outside them are hidden from the public site, as likely
+ * misreadings, until they're checked on the admin page. Keep in sync with the backend's src/data/burials.ts.
+ */
+export const LEDGER_YEARS = { first: 1905, last: 1918 } as const;
+
+export function inLedgerYears(burial: { burialDate: string | null }): boolean {
+  if (!burial.burialDate) return true;
+  const year = Number(burial.burialDate.slice(0, 4));
+  return year >= LEDGER_YEARS.first && year <= LEDGER_YEARS.last;
+}
+
 export type DateBound = "from" | "to";
 export type DateParts = { year: string; month: string; day: string };
 
@@ -45,6 +57,9 @@ export function partsToDate(parts: DateParts, bound: DateBound): { value: string
   if (!year && !month && !day) return { value: null, error: null };
   if (!year) return { value: null, error: "Enter a year, like 1905." };
   if (!/^\d{4}$/.test(year)) return { value: null, error: "Enter the year as 4 digits, like 1905." };
+  if (Number(year) < LEDGER_YEARS.first || Number(year) > LEDGER_YEARS.last) {
+    return { value: null, error: `The ledgers cover ${LEDGER_YEARS.first} to ${LEDGER_YEARS.last}. Enter a year in that range.` };
+  }
   if (day && !month) return { value: null, error: "Choose a month for this day." };
   if (day && !/^\d{1,2}$/.test(day)) return { value: null, error: "Enter the day as a number, like 12." };
 

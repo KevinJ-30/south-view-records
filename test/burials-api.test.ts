@@ -173,3 +173,20 @@ describe("GET /stats", () => {
     expect(stats.sourcePages).toEqual([6, 7]);
   });
 });
+
+describe("records dated outside the ledger years", () => {
+  it("are left out of searches, records, and stats", async () => {
+    const repository = await loadBurials();
+    const { id: _, ...hattie } = (await repository.getById(10))!;
+    const early = await repository.create({ ...hattie, lineOnPage: 90, burialDate: "1890-05-01" });
+    await repository.create({ ...hattie, lineOnPage: 91, burialDate: "1925-05-01" });
+    await repository.create({ ...hattie, lineOnPage: 92, burialDate: "1918-12-31" });
+    const routes = burialRoutes(repository);
+
+    const result: SearchResult = await (await routes.request("/burials?q=tolbert")).json();
+    expect(result.items.map((item) => item.burialDate)).toEqual(["1905-10-12", "1918-12-31"]);
+    expect((await routes.request(`/burials/${early.id}`)).status).toBe(404);
+    const stats: Stats = await (await routes.request("/stats")).json();
+    expect(stats).toMatchObject({ total: 84, earliestDate: "1905-10-10", latestDate: "1918-12-31" });
+  });
+});

@@ -11,6 +11,18 @@ export async function loadBurials(dir = process.env.BURIALS_DATA_DIR ?? DEFAULT_
   return createMemoryRepository(await loadBurialDirectory(dir));
 }
 
+/**
+ * Years the ledgers cover. Records dated outside them are likely misreadings, so the public
+ * site hides them until they're checked; undated records are shown. Keep in sync with web/src/lib/filters.ts.
+ */
+export const LEDGER_YEARS = { first: 1905, last: 1918 } as const;
+
+export function inLedgerYears(burial: Pick<Burial, "burialDate">): boolean {
+  if (!burial.burialDate) return true;
+  const year = Number(burial.burialDate.slice(0, 4));
+  return year >= LEDGER_YEARS.first && year <= LEDGER_YEARS.last;
+}
+
 const MATCH_RANK = { exact: 0, abbreviation: 1, fuzzy: 2 } as const;
 
 /** Ledger reading order: by burial date (undated last), then page and line. */
@@ -42,7 +54,9 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
       const query = params.q?.trim() ?? "";
       const hits: { burial: Burial; match: NameMatch | null }[] = [];
 
+      const dates = params.dates ?? "ledger";
       for (const burial of burials) {
+        if (dates !== "all" && inLedgerYears(burial) !== (dates === "ledger")) continue;
         if (params.from && (!burial.burialDate || burial.burialDate < params.from)) continue;
         if (params.to && (!burial.burialDate || burial.burialDate > params.to)) continue;
         if (params.infant !== undefined && burial.isInfantOf !== params.infant) continue;
@@ -80,12 +94,14 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
       return byId.get(id) ?? null;
     },
 
+    /** Covers only the records the public site shows. */
     async stats(): Promise<Stats> {
+      const shown = burials.filter(inLedgerYears);
       const months = new Map<string, { total: number; infants: number }>();
       const plats = new Map<string, number>();
-      const dates = burials.flatMap((burial) => (burial.burialDate ? [burial.burialDate] : [])).sort();
+      const dates = shown.flatMap((burial) => (burial.burialDate ? [burial.burialDate] : [])).sort();
 
-      for (const burial of burials) {
+      for (const burial of shown) {
         if (burial.burialDate) {
           const month = burial.burialDate.slice(0, 7);
           const entry = months.get(month) ?? { total: 0, infants: 0 };
@@ -98,14 +114,14 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
       }
 
       return {
-        total: burials.length,
-        infants: burials.filter((burial) => burial.isInfantOf).length,
-        undated: burials.length - dates.length,
+        total: shown.length,
+        infants: shown.filter((burial) => burial.isInfantOf).length,
+        undated: shown.length - dates.length,
         earliestDate: dates[0] ?? null,
         latestDate: dates.at(-1) ?? null,
         byMonth: [...months].sort(([a], [b]) => (a < b ? -1 : 1)).map(([month, counts]) => ({ month, ...counts })),
         byPlat: [...plats].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).map(([plat, total]) => ({ plat, total })),
-        sourcePages: [...new Set(burials.map((burial) => burial.sourcePage))].sort((a, b) => a - b),
+        sourcePages: [...new Set(shown.map((burial) => burial.sourcePage))].sort((a, b) => a - b),
       };
     },
 

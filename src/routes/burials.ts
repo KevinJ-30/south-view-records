@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { inLedgerYears } from "../data/burials.js";
 import { isIsoDate } from "../data/load.js";
 import type { BurialRepository, SearchParams } from "../data/types.js";
 import { UNCERTAINTY_FILTERS, type UncertaintyFilter } from "../data/uncertainty.js";
@@ -6,7 +7,7 @@ import { UNCERTAINTY_FILTERS, type UncertaintyFilter } from "../data/uncertainty
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
 
-class BadRequest extends Error {}
+export class BadRequest extends Error {}
 
 /** Routes for /api/burials and /api/stats. Mount with app.route("/api", burialRoutes(repo)). */
 export function burialRoutes(repository: BurialRepository) {
@@ -25,7 +26,7 @@ export function burialRoutes(repository: BurialRepository) {
     const id = c.req.param("id");
     if (!/^\d+$/.test(id)) return c.json({ error: "Record id must be a whole number." }, 400);
     const burial = await repository.getById(Number(id));
-    if (!burial) return c.json({ error: `No record with id ${id}.` }, 404);
+    if (!burial || !inLedgerYears(burial)) return c.json({ error: `No record with id ${id}.` }, 404);
     return c.json(burial);
   });
 
@@ -36,7 +37,7 @@ export function burialRoutes(repository: BurialRepository) {
   return routes;
 }
 
-function parseSearch(query: URLSearchParams): SearchParams {
+export function parseSearch(query: URLSearchParams): SearchParams {
   const text = (name: string) => query.get(name)?.trim() || undefined;
 
   const date = (name: string) => {

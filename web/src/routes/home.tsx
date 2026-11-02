@@ -39,7 +39,7 @@ export function HomePage() {
               <li key={month.month} className="flex justify-between gap-4 border-b border-border py-1 last:border-0">
                 <span>{formatMonth(month.month)}</span>
                 <span className="text-muted-foreground tabular-nums">
-                  {month.total} burials, {month.infants} {month.infants === 1 ? "infant" : "infants"}
+                  {month.total} {month.total === 1 ? "burial" : "burials"}
                 </span>
               </li>
             ))}

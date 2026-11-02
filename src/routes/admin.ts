@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { createMiddleware } from "hono/factory";
 import { isIsoDate, UNCERTAIN_FIELD_NAMES } from "../data/load.js";
 import { InvalidRecord, type BurialInput, type BurialRepository } from "../data/types.js";
+import { BadRequest, parseSearch } from "./burials.js";
 
 /** Placeholder sign-in for the admin page. ADMIN_USERNAME and ADMIN_PASSWORD override these. */
 export const DEFAULT_ADMIN_USERNAME = "admin";
@@ -26,13 +27,20 @@ export function adminRoutes(repository: BurialRepository, options: AdminOptions)
   const routes = new Hono();
 
   routes.onError((error, c) => {
-    if (error instanceof InvalidRecord) return c.json({ error: error.message }, 400);
+    if (error instanceof InvalidRecord || error instanceof BadRequest) return c.json({ error: error.message }, 400);
     throw error;
   });
 
   routes.use("*", requireSignIn(options));
 
   routes.get("/session", (c) => c.json({ username: options.username, persistent: options.persistent }));
+
+  // Like GET /api/burials, but includes records the public site hides: dates=outside finds only those.
+  routes.get("/burials", async (c) => {
+    const query = new URL(c.req.url).searchParams;
+    const dates = query.get("dates") === "outside" ? "outside" : "all";
+    return c.json(await repository.search({ ...parseSearch(query), dates }));
+  });
 
   routes.post("/burials", async (c) => {
     return c.json(await repository.create(parseInput(await readJson(c.req.raw))), 201);

@@ -9,13 +9,14 @@ import {
   createBurial,
   deleteBurial,
   getAdminSession,
-  searchBurials,
+  searchAdminBurials,
   updateBurial,
   type AdminCredentials,
   type AdminSession,
   type Burial,
   type BurialInput,
 } from "@/lib/api";
+import { inLedgerYears, LEDGER_YEARS } from "@/lib/filters";
 import { formatCitation, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -237,11 +238,12 @@ function RecordList({
   const [draft, setDraft] = useState("");
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
+  const [outsideOnly, setOutsideOnly] = useState(false);
   const params = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
   if (q) params.set("q", q);
   const results = useQuery({
-    queryKey: ["burials", params.toString()],
-    queryFn: () => searchBurials(params),
+    queryKey: ["burials", "admin", params.toString(), outsideOnly],
+    queryFn: () => searchAdminBurials(credentials, params, outsideOnly),
     placeholderData: keepPreviousData,
   });
   const invalidate = useInvalidateRecords();
@@ -331,6 +333,20 @@ function RecordList({
         </Button>
       </form>
 
+      <label className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          checked={outsideOnly}
+          onChange={(event) => {
+            setOutsideOnly(event.target.checked);
+            setPage(1);
+            setSelected(new Map());
+          }}
+          className="size-5 accent-primary"
+        />
+        Only records dated outside {LEDGER_YEARS.first}–{LEDGER_YEARS.last} (hidden from the public site)
+      </label>
+
       {remove.isError ? (
         <p role="alert" className="font-medium text-destructive">
           Couldn’t delete: {remove.error.message}
@@ -349,7 +365,9 @@ function RecordList({
           </Button>
         </div>
       ) : results.data.total === 0 ? (
-        <p className="text-muted-foreground">{q ? `No records match “${q}”.` : "There are no records yet."}</p>
+        <p className="text-muted-foreground">
+          {q ? `No records match “${q}”.` : outsideOnly ? "No records are dated outside those years." : "There are no records yet."}
+        </p>
       ) : (
         <>
           <p className="text-sm text-muted-foreground">
@@ -390,16 +408,26 @@ function RecordList({
                   className="size-5 shrink-0 accent-primary"
                 />
                 <div className="min-w-0 flex-1">
-                  <Link
-                    to={`/records/${burial.id}`}
-                    className={cn("font-medium break-words text-foreground underline-offset-4 hover:underline", focusRing)}
-                  >
-                    {burial.nameAsWritten}
-                  </Link>
+                  {inLedgerYears(burial) ? (
+                    <Link
+                      to={`/records/${burial.id}`}
+                      className={cn("font-medium break-words text-foreground underline-offset-4 hover:underline", focusRing)}
+                    >
+                      {burial.nameAsWritten}
+                    </Link>
+                  ) : (
+                    // The public record page doesn't show hidden records, so there is nothing to link to.
+                    <p className="font-medium break-words text-foreground">{burial.nameAsWritten}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">
                     #{burial.id} · {burial.burialDate ? formatDate(burial.burialDate) : "No date"} ·{" "}
                     {formatCitation(burial)}
                   </p>
+                  {inLedgerYears(burial) ? null : (
+                    <p className="text-sm font-medium text-destructive">
+                      Hidden from the public site: dated outside {LEDGER_YEARS.first}–{LEDGER_YEARS.last}. Check the date.
+                    </p>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => onEdit(burial)}>
