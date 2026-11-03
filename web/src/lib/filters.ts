@@ -19,16 +19,10 @@ export const MONTHS = [
 ];
 
 /**
- * Years the ledgers cover. Records dated outside them are hidden from the public site, as likely
- * misreadings, until they're checked on the admin page. Keep in sync with the backend's src/data/burials.ts.
+ * Years the ledgers cover. Records dated outside them are likely misreadings, so the site
+ * leaves them out. Keep in sync with the backend's src/data/burials.ts.
  */
 export const LEDGER_YEARS = { first: 1905, last: 1918 } as const;
-
-export function inLedgerYears(burial: { burialDate: string | null }): boolean {
-  if (!burial.burialDate) return true;
-  const year = Number(burial.burialDate.slice(0, 4));
-  return year >= LEDGER_YEARS.first && year <= LEDGER_YEARS.last;
-}
 
 export type DateBound = "from" | "to";
 export type DateParts = { year: string; month: string; day: string };
@@ -53,7 +47,6 @@ const pad = (value: number) => String(value).padStart(2, "0");
 export function partsToDate(
   parts: DateParts,
   bound: DateBound,
-  anyYear = false,
 ): { value: string | null; error: string | null } {
   const year = parts.year.trim();
   const day = parts.day.trim();
@@ -61,7 +54,7 @@ export function partsToDate(
   if (!year && !month && !day) return { value: null, error: null };
   if (!year) return { value: null, error: "Enter a year, like 1905." };
   if (!/^\d{4}$/.test(year)) return { value: null, error: "Enter the year as 4 digits, like 1905." };
-  if (!anyYear && (Number(year) < LEDGER_YEARS.first || Number(year) > LEDGER_YEARS.last)) {
+  if (Number(year) < LEDGER_YEARS.first || Number(year) > LEDGER_YEARS.last) {
     return { value: null, error: `The ledgers cover ${LEDGER_YEARS.first} to ${LEDGER_YEARS.last}. Enter a year in that range.` };
   }
   if (day && !month) return { value: null, error: "Choose a month for this day." };
@@ -76,11 +69,8 @@ export function partsToDate(
   return { value: `${year}-${pad(monthNumber)}-${pad(dayNumber)}`, error: null };
 }
 
-/** Reads the filter fields of a search form, checking the dates. `anyYear` allows years outside LEDGER_YEARS. */
-export function readFilters(
-  form: FormData,
-  anyYear = false,
-): {
+/** Reads the filter fields of a search form, checking the dates. */
+export function readFilters(form: FormData): {
   values: Partial<Record<Filter, string>>;
   errors: Partial<Record<DateBound, string>>;
 } {
@@ -90,7 +80,7 @@ export function readFilters(
 
   for (const bound of ["from", "to"] as const) {
     const parts = { year: text(`${bound}Year`), month: text(`${bound}Month`), day: text(`${bound}Day`) };
-    const { value, error } = partsToDate(parts, bound, anyYear);
+    const { value, error } = partsToDate(parts, bound);
     if (error) errors[bound] = error;
     else if (value) values[bound] = value;
   }

@@ -56,11 +56,6 @@ export type SearchParams = {
   /** Only records with no burial date. Can't be combined with from or to. */
   undated?: boolean;
   uncertain?: UncertaintyFilter;
-  /**
-   * Which records by date: "ledger" (the default) hides records dated outside LEDGER_YEARS,
-   * and "all" includes them. Only the admin routes set it.
-   */
-  dates?: "ledger" | "all";
   page: number;
   pageSize: number;
 };

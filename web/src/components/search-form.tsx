@@ -19,18 +19,15 @@ const inputClass = cn(
 /**
  * Name search with the date, plot, infant, and uncertainty filters behind a large toggle.
  * Submitting goes to `path` (/search by default) with the name and filters, starting again from page 1.
- * `anyYear` allows dates outside the ledger years, for the admin page.
  */
 export function SearchForm({
   size = "default",
   autoFocus = false,
   path = "/search",
-  anyYear = false,
 }: {
   size?: "default" | "large";
   autoFocus?: boolean;
   path?: string;
-  anyYear?: boolean;
 }) {
   const [params] = useSearchParams();
   const navigate = useNavigate();
@@ -46,7 +43,7 @@ export function SearchForm({
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const { values, errors: found } = readFilters(new FormData(event.currentTarget), anyYear);
+    const { values, errors: found } = readFilters(new FormData(event.currentTarget));
     const firstError = (["from", "to"] as const).find((bound) => found[bound]);
     if (firstError) {
       // Show the panel before moving focus to the date that needs fixing.

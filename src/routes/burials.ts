@@ -7,7 +7,7 @@ import { UNCERTAINTY_FILTERS, type UncertaintyFilter } from "../data/uncertainty
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
 
-export class BadRequest extends Error {}
+class BadRequest extends Error {}
 
 /** Routes for /api/burials and /api/stats. Mount with app.route("/api", burialRoutes(repo)). */
 export function burialRoutes(repository: BurialRepository) {
@@ -37,7 +37,7 @@ export function burialRoutes(repository: BurialRepository) {
   return routes;
 }
 
-export function parseSearch(query: URLSearchParams): SearchParams {
+function parseSearch(query: URLSearchParams): SearchParams {
   const text = (name: string) => query.get(name)?.trim() || undefined;
 
   const date = (name: string) => {

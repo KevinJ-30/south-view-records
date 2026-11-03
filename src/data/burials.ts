@@ -12,8 +12,8 @@ export async function loadBurials(dir = process.env.BURIALS_DATA_DIR ?? DEFAULT_
 }
 
 /**
- * Years the ledgers cover. Records dated outside them are likely misreadings, so the public
- * site hides them until they're checked; undated records are shown. Keep in sync with web/src/lib/filters.ts.
+ * Years the ledgers cover. Records dated outside them are likely misreadings, so searches,
+ * record pages, and stats leave them out, on the public site and the admin page; undated records are shown. Keep in sync with web/src/lib/filters.ts.
  */
 export const LEDGER_YEARS = { first: 1905, last: 1918 } as const;
 
@@ -59,9 +59,8 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
       const query = params.q?.trim() ?? "";
       const hits: { burial: Burial; match: NameMatch | null }[] = [];
 
-      const dates = params.dates ?? "ledger";
       for (const burial of burials) {
-        if (dates === "ledger" && !inLedgerYears(burial)) continue;
+        if (!inLedgerYears(burial)) continue;
         if (params.undated && burial.burialDate) continue;
         if (params.from && (!burial.burialDate || burial.burialDate < params.from)) continue;
         if (params.to && (!burial.burialDate || burial.burialDate > params.to)) continue;
@@ -102,7 +101,7 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
       return byId.get(id) ?? null;
     },
 
-    /** Covers only the records the public site shows. */
+    /** Covers only records dated within LEDGER_YEARS or undated, like search. */
     async stats(): Promise<Stats> {
       const shown = burials.filter(inLedgerYears);
       const months = new Map<string, { total: number; infants: number }>();

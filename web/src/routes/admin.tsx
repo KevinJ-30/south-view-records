@@ -10,14 +10,14 @@ import {
   createBurial,
   deleteBurial,
   getAdminSession,
-  searchAdminBurials,
+  searchBurials,
   updateBurial,
   type AdminCredentials,
   type AdminSession,
   type Burial,
   type BurialInput,
 } from "@/lib/api";
-import { FILTERS, inLedgerYears, LEDGER_YEARS } from "@/lib/filters";
+import { FILTERS } from "@/lib/filters";
 import { formatCitation, formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -255,7 +255,7 @@ function RecordList({
   const formKey = [q, ...activeFilters.map((name) => `${name}=${urlParams.get(name)}`)].join("&");
   const results = useQuery({
     queryKey: ["burials", "admin", params.toString()],
-    queryFn: () => searchAdminBurials(credentials, params),
+    queryFn: () => searchBurials(params),
     placeholderData: keepPreviousData,
   });
   const invalidate = useInvalidateRecords();
@@ -324,7 +324,7 @@ function RecordList({
         </Button>
       </div>
 
-      <SearchForm key={formKey} path={ADMIN_PATH} anyYear />
+      <SearchForm key={formKey} path={ADMIN_PATH} />
 
       {remove.isError ? (
         <p role="alert" className="font-medium text-destructive">
@@ -388,26 +388,16 @@ function RecordList({
                   className="size-5 shrink-0 accent-primary"
                 />
                 <div className="min-w-0 flex-1">
-                  {inLedgerYears(burial) ? (
-                    <Link
-                      to={`/records/${burial.id}`}
-                      className={cn("font-medium break-words text-foreground underline-offset-4 hover:underline", focusRing)}
-                    >
-                      {burial.nameAsWritten}
-                    </Link>
-                  ) : (
-                    // The public record page doesn't show hidden records, so there is nothing to link to.
-                    <p className="font-medium break-words text-foreground">{burial.nameAsWritten}</p>
-                  )}
+                  <Link
+                    to={`/records/${burial.id}`}
+                    className={cn("font-medium break-words text-foreground underline-offset-4 hover:underline", focusRing)}
+                  >
+                    {burial.nameAsWritten}
+                  </Link>
                   <p className="text-sm text-muted-foreground">
                     #{burial.id} · {burial.burialDate ? formatDate(burial.burialDate) : "No date"} ·{" "}
                     {formatCitation(burial)}
                   </p>
-                  {inLedgerYears(burial) ? null : (
-                    <p className="text-sm font-medium text-destructive">
-                      Hidden from the public site: dated outside {LEDGER_YEARS.first}–{LEDGER_YEARS.last}. Check the date.
-                    </p>
-                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={() => onEdit(burial)}>

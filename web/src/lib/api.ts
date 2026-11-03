@@ -112,16 +112,6 @@ function adminRequest<T>(credentials: AdminCredentials, path: string, method = "
   return request(`/api/admin${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
 }
 
-/** Like searchBurials, but includes records the public site hides because their date is outside the ledger years. */
-export function searchAdminBurials(credentials: AdminCredentials, params: URLSearchParams): Promise<SearchResult> {
-  const query = new URLSearchParams();
-  for (const name of SEARCH_PARAMS) {
-    const value = params.get(name)?.trim();
-    if (value) query.set(name, value);
-  }
-  return adminRequest(credentials, `/burials?${query}`);
-}
-
 /** Checks the credentials; fails with status 401 when they are wrong. */
 export function getAdminSession(credentials: AdminCredentials): Promise<AdminSession> {
   return adminRequest(credentials, "/session");
