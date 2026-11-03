@@ -1,6 +1,9 @@
 import { useEffect, useRef } from "react";
 import { Link, Outlet, ScrollRestoration, useLocation } from "react-router";
 import mark from "@/assets/south-view-mark.png";
+import { METHODS_PATH } from "@/routes/methods";
+
+const focusRing = "rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
 
 /**
  * Site chrome for every page. On client-side navigation, focus moves to the new
@@ -24,7 +27,14 @@ export function Layout() {
       >
         Skip to main content
       </a>
-      {pathname === "/" ? null : <SiteHeader />}
+      {pathname === "/" ? (
+        // The home page shows its own large logo, so it only needs the link.
+        <nav aria-label="Site" className="mx-auto flex w-full max-w-3xl justify-end px-4 pt-3 sm:px-6">
+          <MethodsLink />
+        </nav>
+      ) : (
+        <SiteHeader />
+      )}
       <main id="main" className="mx-auto w-full max-w-3xl flex-1 px-4 pt-6 pb-16 sm:px-6">
         <Outlet />
       </main>
@@ -40,11 +50,8 @@ export function Layout() {
 function SiteHeader() {
   return (
     <header className="border-b border-border">
-      <div className="mx-auto flex w-full max-w-3xl items-center px-4 py-3 sm:px-6">
-        <Link
-          to="/"
-          className="flex items-center gap-3 rounded-md outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        >
+      <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <Link to="/" className={`flex items-center gap-3 ${focusRing}`}>
           <img src={mark} alt="" className="h-8 w-auto" />
           <span className="flex flex-col leading-none">
             <span className="font-heading text-xl font-bold text-primary">South-View</span>
@@ -53,7 +60,18 @@ function SiteHeader() {
             </span>
           </span>
         </Link>
+        <nav aria-label="Site">
+          <MethodsLink />
+        </nav>
       </div>
     </header>
+  );
+}
+
+function MethodsLink() {
+  return (
+    <Link to={METHODS_PATH} className={`py-2 font-medium text-foreground underline underline-offset-4 ${focusRing}`}>
+      Methods
+    </Link>
   );
 }

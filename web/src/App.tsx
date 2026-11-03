@@ -4,6 +4,7 @@ import { Layout } from "@/components/layout";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { ADMIN_PATH, AdminPage } from "@/routes/admin";
 import { HomePage } from "@/routes/home";
+import { METHODS_PATH, MethodsPage } from "@/routes/methods";
 import { RecordPage } from "@/routes/record";
 import { SearchPage } from "@/routes/search";
 
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "search", element: <SearchPage /> },
       { path: "records/:id", element: <RecordPage /> },
+      { path: METHODS_PATH, element: <MethodsPage /> },
       { path: ADMIN_PATH, element: <AdminPage /> },
       { path: "*", element: <NotFound /> },
     ],
