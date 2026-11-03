@@ -49,6 +49,8 @@ export type SearchParams = {
   section?: string;
   block?: string;
   lot?: string;
+  range?: string;
+  grave?: string;
   infant?: boolean;
   /** Only records with no burial date. Can't be combined with from or to. */
   undated?: boolean;

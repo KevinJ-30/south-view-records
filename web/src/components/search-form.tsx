@@ -164,7 +164,7 @@ export function SearchForm({
           </label>
         </fieldset>
 
-        <fieldset className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <fieldset className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <legend className="mb-2 font-medium">Plot location</legend>
           <div className="flex flex-col gap-1">
             <label htmlFor={field("plat")} className="text-sm">
@@ -179,7 +179,7 @@ export function SearchForm({
               ))}
             </select>
           </div>
-          {(["section", "block", "lot"] as const).map((name) => (
+          {(["section", "block", "lot", "range", "grave"] as const).map((name) => (
             <div key={name} className="flex flex-col gap-1">
               <label htmlFor={field(name)} className="text-sm capitalize">
                 {name}

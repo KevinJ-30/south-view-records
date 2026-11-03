@@ -81,6 +81,8 @@ export function parseSearch(query: URLSearchParams): SearchParams {
     section: text("section"),
     block: text("block"),
     lot: text("lot"),
+    range: text("range"),
+    grave: text("grave"),
     infant,
     undated: undated || undefined,
     uncertain: uncertain as UncertaintyFilter | undefined,

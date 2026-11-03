@@ -174,6 +174,13 @@ describe("GET /stats", () => {
   });
 });
 
+describe("range and grave filters", () => {
+  it("match the value as written, ignoring case", async () => {
+    expect(names(await search("plat=VR&lot=5&range=j&grave=15"))).toEqual(["Hattie Tolbert"]);
+    expect((await search("range=Z")).total).toBe(0);
+  });
+});
+
 describe("records with no date", () => {
   it("can be listed on their own", async () => {
     const result = await search("undated=yes");

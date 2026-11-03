@@ -66,6 +66,8 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
         if (!sameValue(burial.section, params.section)) continue;
         if (!sameValue(burial.block, params.block)) continue;
         if (!sameValue(burial.lot, params.lot)) continue;
+        if (!sameValue(burial.range, params.range)) continue;
+        if (!sameValue(burial.grave, params.grave)) continue;
 
         const match = query ? matchName(burial.nameAsWritten, query) : null;
         if (query && !match) continue;

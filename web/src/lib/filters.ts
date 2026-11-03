@@ -1,5 +1,5 @@
 /** Search filters kept in the /search URL, besides the name query and page. */
-export const FILTERS = ["from", "to", "undated", "infant", "uncertain", "plat", "section", "block", "lot"] as const;
+export const FILTERS = ["from", "to", "undated", "infant", "uncertain", "plat", "section", "block", "lot", "range", "grave"] as const;
 
 export type Filter = (typeof FILTERS)[number];
 
@@ -102,7 +102,7 @@ export function readFilters(
     else values.undated = "yes";
   }
 
-  for (const name of ["infant", "uncertain", "plat", "section", "block", "lot"] as const) {
+  for (const name of ["infant", "uncertain", "plat", "section", "block", "lot", "range", "grave"] as const) {
     if (text(name)) values[name] = text(name);
   }
   return { values, errors };
