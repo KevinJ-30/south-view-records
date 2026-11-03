@@ -44,12 +44,12 @@ function send(method: string, path: string, body?: unknown, headers: Record<stri
 }
 
 describe("GET /burials", () => {
-  it("includes records the public site hides, and can find only those", async () => {
+  it("includes records the public site hides", async () => {
     await repository.create({ ...input, burialDate: "1890-05-01" });
     const all = await (await send("GET", "/burials?pageSize=100")).json();
     expect(all.total).toBe(84);
-    const outside = await (await send("GET", "/burials?dates=outside")).json();
-    expect(outside.items.map((item: Burial) => item.burialDate)).toEqual(["1890-05-01"]);
+    const early = await (await send("GET", "/burials?to=1899-12-31")).json();
+    expect(early.items.map((item: Burial) => item.burialDate)).toEqual(["1890-05-01"]);
     expect((await send("GET", "/burials?page=0")).status).toBe(400);
     expect((await send("GET", "/burials", undefined, {})).status).toBe(401);
   });

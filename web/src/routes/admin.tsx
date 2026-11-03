@@ -240,7 +240,6 @@ function RecordList({
   const [urlParams, setUrlParams] = useSearchParams();
   const q = urlParams.get("q")?.trim() ?? "";
   const page = /^\d+$/.test(urlParams.get("page") ?? "") ? Math.max(1, Number(urlParams.get("page"))) : 1;
-  const [outsideOnly, setOutsideOnly] = useState(false);
   const setPage = (next: number) =>
     setUrlParams((current) => {
       const updated = new URLSearchParams(current);
@@ -255,18 +254,17 @@ function RecordList({
   // Remount the form when the URL changes so its fields show the current search.
   const formKey = [q, ...activeFilters.map((name) => `${name}=${urlParams.get(name)}`)].join("&");
   const results = useQuery({
-    queryKey: ["burials", "admin", params.toString(), outsideOnly],
-    queryFn: () => searchAdminBurials(credentials, params, outsideOnly),
+    queryKey: ["burials", "admin", params.toString()],
+    queryFn: () => searchAdminBurials(credentials, params),
     placeholderData: keepPreviousData,
   });
   const invalidate = useInvalidateRecords();
   /** Records ticked for deletion, kept while paging so a selection can span pages. */
   const [selected, setSelected] = useState<Map<number, Burial>>(new Map());
   // A new search or filter starts a fresh selection; paging keeps it.
-  const selectionKey = `${formKey}|${outsideOnly}`;
-  const [lastSelectionKey, setLastSelectionKey] = useState(selectionKey);
-  if (selectionKey !== lastSelectionKey) {
-    setLastSelectionKey(selectionKey);
+  const [lastFormKey, setLastFormKey] = useState(formKey);
+  if (formKey !== lastFormKey) {
+    setLastFormKey(formKey);
     setSelected(new Map());
   }
   const remove = useMutation({
@@ -328,19 +326,6 @@ function RecordList({
 
       <SearchForm key={formKey} path={ADMIN_PATH} anyYear />
 
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={outsideOnly}
-          onChange={(event) => {
-            setOutsideOnly(event.target.checked);
-            setPage(1);
-          }}
-          className="size-5 accent-primary"
-        />
-        Only records dated outside {LEDGER_YEARS.first}–{LEDGER_YEARS.last} (hidden from the public site)
-      </label>
-
       {remove.isError ? (
         <p role="alert" className="font-medium text-destructive">
           Couldn’t delete: {remove.error.message}
@@ -360,7 +345,7 @@ function RecordList({
         </div>
       ) : results.data.total === 0 ? (
         <p className="text-muted-foreground">
-          {q ? `No records match “${q}”.` : activeFilters.length ? "No records match these filters." : outsideOnly ? "No records are dated outside those years." : "There are no records yet."}
+          {q ? `No records match “${q}”.` : activeFilters.length ? "No records match these filters." : "There are no records yet."}
         </p>
       ) : (
         <>

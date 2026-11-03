@@ -35,11 +35,9 @@ export function adminRoutes(repository: BurialRepository, options: AdminOptions)
 
   routes.get("/session", (c) => c.json({ username: options.username, persistent: options.persistent }));
 
-  // Like GET /api/burials, but includes records the public site hides: dates=outside finds only those.
+  // Like GET /api/burials, but includes records the public site hides.
   routes.get("/burials", async (c) => {
-    const query = new URL(c.req.url).searchParams;
-    const dates = query.get("dates") === "outside" ? "outside" : "all";
-    return c.json(await repository.search({ ...parseSearch(query), dates }));
+    return c.json(await repository.search({ ...parseSearch(new URL(c.req.url).searchParams), dates: "all" }));
   });
 
   routes.post("/burials", async (c) => {
