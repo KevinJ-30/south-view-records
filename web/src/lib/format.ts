@@ -34,18 +34,6 @@ export function formatCitation(burial: Pick<Burial, "sourcePage" | "lineOnPage" 
   return burial.entryNo ? `${page}, entry ${burial.entryNo}` : `${page}, line ${burial.lineOnPage} (no entry number)`;
 }
 
-/** [6, 7, 8, 12] -> "pages 6–8, 12". */
-export function formatPages(pages: number[]): string {
-  const runs: string[] = [];
-  for (let i = 0; i < pages.length; i += 1) {
-    let end = i;
-    while (end + 1 < pages.length && pages[end + 1] === pages[end] + 1) end += 1;
-    runs.push(end > i ? `${pages[i]}–${pages[end]}` : `${pages[i]}`);
-    i = end;
-  }
-  return `${pages.length === 1 ? "page" : "pages"} ${runs.join(", ")}`;
-}
-
 export const LOCATION_FIELDS = [
   ["section", "Section"],
   ["block", "Block"],

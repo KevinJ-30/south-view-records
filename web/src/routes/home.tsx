@@ -4,7 +4,7 @@ import logo from "@/assets/south-view-logo.png";
 import { SearchForm } from "@/components/search-form";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { getStats } from "@/lib/api";
-import { formatMonth, formatPages } from "@/lib/format";
+import { formatMonth } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 const focusRing = "outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50";
@@ -43,7 +43,7 @@ export function HomePage() {
             What’s transcribed so far
           </h2>
           <p className="mt-1 text-muted-foreground">
-            {stats.data.total} burials from ledger {formatPages(stats.data.sourcePages)}. More pages are being added.
+            {stats.data.total.toLocaleString()} burials so far. More pages are being added.
           </p>
           <ul className="mt-3 flex flex-col gap-1">
             {stats.data.byMonth.map((month) => (
