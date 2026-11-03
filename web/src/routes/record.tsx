@@ -110,11 +110,7 @@ function RecordDetail({ burial }: { burial: Burial }) {
       </Section>
 
       <Section title="Ledger source">
-        <Row label="Ledger page">
-          <Uncertain uncertain={uncertain("sourcePage")} field="sourcePage">
-            {burial.sourcePage}
-          </Uncertain>
-        </Row>
+        <Row label="Ledger page">{value("sourcePage")}</Row>
         <Row label="Line on page">{burial.lineOnPage}</Row>
         <Row label="Entry number">{value("entryNo")}</Row>
         <Row label="Index record">#{burial.id}</Row>

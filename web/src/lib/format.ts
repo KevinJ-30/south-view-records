@@ -30,9 +30,8 @@ export function formatAge(burial: Pick<Burial, "ageYears" | "ageMonthsOrDays">):
 
 /** "Ledger page 6, entry 872", or the line number when the ledger has no entry number. */
 export function formatCitation(burial: Pick<Burial, "sourcePage" | "lineOnPage" | "entryNo">): string {
-  return burial.entryNo
-    ? `Ledger page ${burial.sourcePage}, entry ${burial.entryNo}`
-    : `Ledger page ${burial.sourcePage}, line ${burial.lineOnPage} (no entry number)`;
+  const page = burial.sourcePage === null ? "Ledger page not recorded" : `Ledger page ${burial.sourcePage}`;
+  return burial.entryNo ? `${page}, entry ${burial.entryNo}` : `${page}, line ${burial.lineOnPage} (no entry number)`;
 }
 
 /** [6, 7, 8, 12] -> "pages 6–8, 12". */

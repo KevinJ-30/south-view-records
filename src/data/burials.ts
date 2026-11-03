@@ -32,7 +32,12 @@ function compareLedgerOrder(a: Burial, b: Burial): number {
     if (b.burialDate === null) return -1;
     return a.burialDate < b.burialDate ? -1 : 1;
   }
-  return a.sourcePage - b.sourcePage || a.lineOnPage - b.lineOnPage;
+  if (a.sourcePage !== b.sourcePage) {
+    if (a.sourcePage === null) return 1;
+    if (b.sourcePage === null) return -1;
+    return a.sourcePage - b.sourcePage;
+  }
+  return a.lineOnPage - b.lineOnPage;
 }
 
 function sameValue(actual: string | null, wanted: string | undefined): boolean {
@@ -124,7 +129,9 @@ export function createMemoryRepository(records: Burial[]): BurialRepository {
         latestDate: dates.at(-1) ?? null,
         byMonth: [...months].sort(([a], [b]) => (a < b ? -1 : 1)).map(([month, counts]) => ({ month, ...counts })),
         byPlat: [...plats].sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1)).map(([plat, total]) => ({ plat, total })),
-        sourcePages: [...new Set(shown.map((burial) => burial.sourcePage))].sort((a, b) => a - b),
+        sourcePages: [...new Set(shown.flatMap((burial) => (burial.sourcePage === null ? [] : [burial.sourcePage])))].sort(
+          (a, b) => a - b,
+        ),
       };
     },
 

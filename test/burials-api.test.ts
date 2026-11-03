@@ -211,3 +211,15 @@ describe("records dated outside the ledger years", () => {
     expect(stats).toMatchObject({ total: 84, earliestDate: "1905-10-10", latestDate: "1918-12-31" });
   });
 });
+
+describe("records with no ledger page", () => {
+  it("are left out of the page list and sorted after numbered pages", async () => {
+    const repository = await loadBurials();
+    const { id: _, ...hattie } = (await repository.getById(10))!;
+    await repository.create({ ...hattie, sourcePage: null, lineOnPage: 1 });
+    const stats = await repository.stats();
+    expect(stats.sourcePages).toEqual([6, 7]);
+    const result = await repository.search({ q: "tolbert", page: 1, pageSize: 20 });
+    expect(result.items.map((item) => item.sourcePage)).toEqual([6, null]);
+  });
+});

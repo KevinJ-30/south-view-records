@@ -15,7 +15,7 @@ const REFRESH_MS = 60_000;
 /** A row of public.burial_records as Supabase returns it. */
 export type BurialRow = {
   index_record: number;
-  ledger_page: number;
+  ledger_page: number | null;
   line_on_page: number;
   entry_number: number | null;
   /** Null on rows imported without a name; those burials can still be found by the other filters. */

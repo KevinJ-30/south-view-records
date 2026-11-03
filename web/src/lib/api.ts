@@ -5,7 +5,8 @@
 
 export type Burial = {
   id: number;
-  sourcePage: number;
+  /** Null when the ledger page wasn't recorded. */
+  sourcePage: number | null;
   lineOnPage: number;
   entryNo: string | null;
   nameAsWritten: string;
